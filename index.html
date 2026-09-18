@@ -270,6 +270,54 @@ const DEFAULT_STATE = {"version": 1, "settings": {"name": "", "age": 34, "sex": 
 const STORAGE_KEY = "kalorientracker_state_v1";
 let state = loadLocal();
 let selectedMeal = "Frühstück";
+const headerDate=document.getElementById("headerDate");
+const dDate=document.getElementById("dDate");
+const dSearch=document.getElementById("dSearch");
+const suggestions=document.getElementById("suggestions");
+const selectedFoodInfo=document.getElementById("selectedFoodInfo");
+const dAmount=document.getElementById("dAmount");
+const dUnit=document.getElementById("dUnit");
+const previewKcal=document.getElementById("previewKcal");
+const previewPer100=document.getElementById("previewPer100");
+const qtyBase=document.getElementById("qtyBase");
+const qtyPiece=document.getElementById("qtyPiece");
+const amountLabel=document.getElementById("amountLabel");
+const pieceHint=document.getElementById("pieceHint");
+const addDiary=document.getElementById("addDiary");
+const diaryList=document.getElementById("diaryList");
+const fCategory=document.getElementById("fCategory");
+const fName=document.getElementById("fName");
+const fKcal=document.getElementById("fKcal");
+const fPortion=document.getElementById("fPortion");
+const fUnit=document.getElementById("fUnit");
+const fPieceWeight=document.getElementById("fPieceWeight");
+const fPieceLabel=document.getElementById("fPieceLabel");
+const addFood=document.getElementById("addFood");
+const customFoodsList=document.getElementById("customFoodsList");
+const wDate=document.getElementById("wDate");
+const wValue=document.getElementById("wValue");
+const addWeight=document.getElementById("addWeight");
+const weightList=document.getElementById("weightList");
+const sAge=document.getElementById("sAge");
+const sSex=document.getElementById("sSex");
+const sHeight=document.getElementById("sHeight");
+const sStartWeight=document.getElementById("sStartWeight");
+const sTargetWeight=document.getElementById("sTargetWeight");
+const sTargetKcal=document.getElementById("sTargetKcal");
+const saveSettings=document.getElementById("saveSettings");
+const needs=document.getElementById("needs");
+const todayKcal=document.getElementById("todayKcal");
+const remainingKcal=document.getElementById("remainingKcal");
+const targetKcal=document.getElementById("targetKcal");
+const lastWeight=document.getElementById("lastWeight");
+const kcalBar=document.getElementById("kcalBar");
+const kcalBarText=document.getElementById("kcalBarText");
+const weightBar=document.getElementById("weightBar");
+const weightBarText=document.getElementById("weightBarText");
+const todayEntries=document.getElementById("todayEntries");
+const exportData=document.getElementById("exportData");
+const importFile=document.getElementById("importFile");
+const resetData=document.getElementById("resetData");
 
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function loadLocal(){
@@ -282,6 +330,23 @@ function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));ren
 function todayISO(){return new Date().toISOString().slice(0,10)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function fmt(n,d=0){return Number(n||0).toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d})}
+function calc(food,amount){return food&&amount?Number(food.kcal||0)*Number(amount)/100:0}
+
+headerDate.textContent=new Date().toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"});
+
+document.querySelectorAll(".nav-btn").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById(btn.dataset.view).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}));
+
+document.querySelectorAll(".meal-btn").forEach(btn=>btn.addEventListener("click",()=>{
+  selectedMeal=btn.dataset.meal;
+  document.querySelectorAll(".meal-btn").forEach(b=>b.classList.toggle("active",b===btn));
+}));
+
 function allFoods(){return [...state.foods,...state.customFoods]}
 let selectedFood = null;
 let quantityMode = "base";
