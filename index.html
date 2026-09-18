@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>KalorienTracker</title>
+<style>
+:root{--bg:#0f172a;--panel:#111827;--panel2:#1f2937;--text:#f8fafc;--muted:#94a3b8;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--line:#334155}
+*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0b1220;color:var(--text)}
+header{position:sticky;top:0;z-index:10;background:rgba(15,23,42,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 16px}
+h1{margin:0;font-size:20px} nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button,.btn{border:0;border-radius:10px;padding:10px 12px;background:var(--panel2);color:var(--text);cursor:pointer;font-weight:600}
+button.primary{background:var(--green);color:#052e24} button.danger{background:#7f1d1d} button.active{outline:2px solid var(--green)}
+main{max-width:1100px;margin:auto;padding:18px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.span-12{grid-column:span 12}.span-6{grid-column:span 6}.span-4{grid-column:span 4}.span-3{grid-column:span 3}
+@media(max-width:800px){.span-6,.span-4,.span-3{grid-column:span 12}}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px} input,select,textarea{width:100%;background:#0f172a;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}
+.row{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;align-items:end}.row>*{min-width:0}
+@media(max-width:900px){.row{grid-template-columns:1fr 1fr}} @media(max-width:560px){.row{grid-template-columns:1fr}}
+.metric{font-size:28px;font-weight:800}.muted{color:var(--muted)} .good{color:#34d399}.bad{color:#f87171}
+table{width:100%;border-collapse:collapse;font-size:14px} th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left} th{color:#cbd5e1}
+.hidden{display:none}.bar{height:12px;background:#1e293b;border-radius:99px;overflow:hidden}.bar>div{height:100%;background:var(--green)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.small{font-size:12px}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#1e293b;margin:3px}
+</style>
+</head>
+<body>
+<header>
+  <h1>KalorienTracker</h1>
+  <nav id="nav">
+    <button data-view="dashboard" class="active">Dashboard</button>
+    <button data-view="diary">Tagebuch</button>
+    <button data-view="foods">Lebensmittel</button>
+    <button data-view="weight">Gewicht</button>
+    <button data-view="settings">Einstellungen</button>
+    <button data-view="data">Daten</button>
+  </nav>
+</header>
+<main>
+<section id="dashboard" class="view">
+  <div class="grid">
+    <div class="card span-3"><div class="muted">Heute gegessen</div><div id="todayKcal" class="metric">0</div><div class="small">kcal</div></div>
+    <div class="card span-3"><div class="muted">Tagesziel</div><div id="targetKcal" class="metric">0</div><div class="small">kcal</div></div>
+    <div class="card span-3"><div class="muted">Verbleibend</div><div id="remainingKcal" class="metric">0</div><div class="small">kcal</div></div>
+    <div class="card span-3"><div class="muted">Letztes Gewicht</div><div id="lastWeight" class="metric">–</div><div class="small">kg</div></div>
+    <div class="card span-6">
+      <h3>Kalorien heute</h3><div class="bar"><div id="kcalBar" style="width:0%"></div></div>
+      <p id="kcalBarText" class="muted small"></p>
+    </div>
+    <div class="card span-6">
+      <h3>Fortschritt Gewicht</h3><div class="bar"><div id="weightBar" style="width:0%"></div></div>
+      <p id="weightBarText" class="muted small"></p>
+    </div>
+    <div class="card span-12"><h3>Letzte Einträge</h3><div id="recentEntries"></div></div>
+  </div>
+</section>
+
+<section id="diary" class="view hidden">
+  <div class="card">
+    <h2>Tagebuch</h2>
+    <div class="row">
+      <div><label>Datum</label><input id="dDate" type="date"></div>
+      <div><label>Mahlzeit</label><select id="dMeal"><option>Frühstück</option><option>Snack</option><option>Mittagessen</option><option>Abendessen</option><option>Getränk</option><option>Sonstiges</option></select></div>
+      <div><label>Kategorie</label><select id="dCategory"></select></div>
+      <div><label>Lebensmittel</label><select id="dFood"></select></div>
+      <div><label>Menge</label><input id="dAmount" type="number" min="0" step="1" placeholder="z.B. 200"></div>
+      <div><label>Einheit</label><input id="dUnit" readonly></div>
+      <div><label>kcal / 100</label><input id="dKcal100" readonly></div>
+      <div><label>Kalorien</label><input id="dTotal" readonly></div>
+    </div>
+    <div class="actions" style="margin-top:12px"><button class="primary" id="addDiary">Eintrag hinzufügen</button></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Einträge</h3><div id="diaryTable"></div></div>
+</section>
+
+<section id="foods" class="view hidden">
+  <div class="card">
+    <h2>Eigene Lebensmittel</h2>
+    <p class="muted">Eigene Kategorien erscheinen automatisch im Tagebuch. Lebensmittel werden danach passend gefiltert.</p>
+    <div class="row">
+      <div><label>Kategorie</label><input id="fCategory" placeholder="z.B. Meine Snacks"></div>
+      <div><label>Lebensmittel</label><input id="fName" placeholder="z.B. Proteinpudding XYZ"></div>
+      <div><label>kcal / 100</label><input id="fKcal" type="number" step="0.1"></div>
+      <div><label>Typische Portion</label><input id="fPortion" type="number" step="1"></div>
+      <div><label>Einheit</label><select id="fUnit"><option>g</option><option>ml</option></select></div>
+      <div style="grid-column:span 3"><button class="primary" id="addFood">Eigenes Lebensmittel speichern</button></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Eigene Lebensmittel</h3><div id="customFoodsTable"></div></div>
+</section>
+
+<section id="weight" class="view hidden">
+  <div class="card">
+    <h2>Gewicht</h2>
+    <div class="row">
+      <div><label>Datum</label><input id="wDate" type="date"></div>
+      <div><label>Gewicht kg</label><input id="wValue" type="number" step="0.1"></div>
+      <div><button class="primary" id="addWeight">Speichern</button></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px"><div id="weightTable"></div></div>
+</section>
+
+<section id="settings" class="view hidden">
+  <div class="card">
+    <h2>Einstellungen</h2>
+    <div class="row">
+      <div><label>Alter</label><input id="sAge" type="number"></div>
+      <div><label>Geschlecht</label><select id="sSex"><option>Mann</option><option>Frau</option></select></div>
+      <div><label>Größe cm</label><input id="sHeight" type="number"></div>
+      <div><label>Startgewicht kg</label><input id="sStartWeight" type="number" step="0.1"></div>
+      <div><label>Zielgewicht kg</label><input id="sTargetWeight" type="number" step="0.1"></div>
+      <div><label>Kalorienziel/Tag</label><input id="sTargetKcal" type="number"></div>
+      <div><button class="primary" id="saveSettings">Speichern</button></div>
+    </div>
+    <p id="needs" class="muted"></p>
+  </div>
+</section>
+
+<section id="data" class="view hidden">
+  <div class="card">
+    <h2>Daten sichern & übertragen</h2>
+    <p>Die App speichert automatisch lokal im Browser. Für iCloud-Geräteübertragung exportierst du zusätzlich die JSON-Datei.</p>
+    <div class="actions">
+      <button class="primary" id="exportData">Daten exportieren</button>
+      <label class="btn" for="importFile">Daten importieren</label>
+      <input id="importFile" type="file" accept=".json,application/json" class="hidden">
+      <button class="danger" id="resetData">Alle lokalen Daten löschen</button>
+    </div>
+    <p class="muted small">Empfehlung: Speichere die exportierte Datei immer unter demselben Namen <b>kalorientracker-daten.json</b> in deinem iCloud-Drive-Ordner.</p>
+  </div>
+</section>
+</main>
+
+<script>
+const DEFAULT_STATE = {"version": 1, "settings": {"name": "", "age": 34, "sex": "Mann", "heightCm": 181, "startWeightKg": 114, "targetWeightKg": 95, "dailyCalorieTarget": 2200}, "foods": [{"category": "Gemüse", "name": "Möhre/Karotte roh", "kcal": 41, "portion": 100, "unit": "g"}, {"category": "Gemüse", "name": "Gurke", "kcal": 15, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Tomate", "kcal": 18, "portion": 120, "unit": "g"}, {"category": "Gemüse", "name": "Paprika rot", "kcal": 31, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Brokkoli", "kcal": 34, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Blumenkohl", "kcal": 25, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Zucchini", "kcal": 17, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Champignons", "kcal": 22, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Zwiebel", "kcal": 40, "portion": 80, "unit": "g"}, {"category": "Gemüse", "name": "Spinat", "kcal": 23, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Apfel", "kcal": 52, "portion": 180, "unit": "g"}, {"category": "Obst", "name": "Banane", "kcal": 89, "portion": 120, "unit": "g"}, {"category": "Obst", "name": "Orange", "kcal": 47, "portion": 180, "unit": "g"}, {"category": "Obst", "name": "Mandarine", "kcal": 53, "portion": 100, "unit": "g"}, {"category": "Obst", "name": "Birne", "kcal": 57, "portion": 180, "unit": "g"}, {"category": "Obst", "name": "Erdbeeren", "kcal": 32, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Heidelbeeren", "kcal": 57, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Weintrauben", "kcal": 69, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Wassermelone", "kcal": 30, "portion": 250, "unit": "g"}, {"category": "Obst", "name": "Avocado", "kcal": 160, "portion": 100, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Kartoffeln gekocht", "kcal": 87, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Kartoffelpüree", "kcal": 105, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Pommes frittiert", "kcal": 312, "portion": 150, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Reis weiß trocken", "kcal": 360, "portion": 75, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Reis weiß gekocht", "kcal": 130, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Basmati Reis gekocht", "kcal": 130, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Haferflocken", "kcal": 372, "portion": 50, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Müsli", "kcal": 370, "portion": 60, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Toastbrot", "kcal": 265, "portion": 50, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Vollkornbrot", "kcal": 230, "portion": 60, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Brötchen", "kcal": 270, "portion": 60, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Vollkornbrötchen", "kcal": 250, "portion": 70, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Croissant", "kcal": 406, "portion": 70, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Glutenfreies Brot", "kcal": 240, "portion": 60, "unit": "g"}, {"category": "Nudeln", "name": "Nudeln trocken", "kcal": 350, "portion": 100, "unit": "g"}, {"category": "Nudeln", "name": "Nudeln gekocht", "kcal": 150, "portion": 200, "unit": "g"}, {"category": "Nudeln", "name": "Spaghetti gekocht", "kcal": 158, "portion": 200, "unit": "g"}, {"category": "Nudeln", "name": "Gnocchi", "kcal": 160, "portion": 250, "unit": "g"}, {"category": "Nudeln", "name": "Tortellini Käse", "kcal": 260, "portion": 250, "unit": "g"}, {"category": "Nudeln", "name": "Maultaschen", "kcal": 220, "portion": 250, "unit": "g"}, {"category": "Milchprodukte", "name": "Vollmilch 3,5%", "kcal": 64, "portion": 250, "unit": "ml"}, {"category": "Milchprodukte", "name": "Milch 1,5%", "kcal": 47, "portion": 250, "unit": "ml"}, {"category": "Milchprodukte", "name": "Skyr natur", "kcal": 63, "portion": 200, "unit": "g"}, {"category": "Milchprodukte", "name": "Magerquark", "kcal": 67, "portion": 250, "unit": "g"}, {"category": "Milchprodukte", "name": "Naturjoghurt 3,5%", "kcal": 61, "portion": 150, "unit": "g"}, {"category": "Milchprodukte", "name": "Butter", "kcal": 717, "portion": 10, "unit": "g"}, {"category": "Käse", "name": "Gouda", "kcal": 356, "portion": 30, "unit": "g"}, {"category": "Käse", "name": "Mozzarella", "kcal": 250, "portion": 125, "unit": "g"}, {"category": "Käse", "name": "Feta", "kcal": 265, "portion": 50, "unit": "g"}, {"category": "Käse", "name": "Parmesan", "kcal": 431, "portion": 20, "unit": "g"}, {"category": "Fleisch", "name": "Hähnchenbrust roh", "kcal": 120, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Hähnchenbrust gebraten", "kcal": 165, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Rinderhack 20%", "kcal": 250, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Rinderhack mager", "kcal": 170, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Gemischtes Hack", "kcal": 260, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Rindersteak mager", "kcal": 200, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Schweineschnitzel paniert", "kcal": 280, "portion": 220, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Bockwurst", "kcal": 280, "portion": 100, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Bratwurst", "kcal": 300, "portion": 120, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Salami", "kcal": 420, "portion": 30, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Kochschinken", "kcal": 120, "portion": 50, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Lachs roh", "kcal": 208, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Lachs gebraten", "kcal": 230, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Thunfisch Dose eigener Saft", "kcal": 116, "portion": 150, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Garnelen", "kcal": 99, "portion": 200, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Ei", "kcal": 143, "portion": 60, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Rührei", "kcal": 150, "portion": 120, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Tofu natur", "kcal": 144, "portion": 150, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Falafel", "kcal": 330, "portion": 150, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Linsen gekocht", "kcal": 116, "portion": 200, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Kichererbsen gekocht", "kcal": 164, "portion": 200, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Kidneybohnen Dose", "kcal": 127, "portion": 150, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Mandeln", "kcal": 579, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Walnüsse", "kcal": 654, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Cashews", "kcal": 553, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Erdnüsse", "kcal": 567, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Erdnussbutter", "kcal": 588, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Vollmilchschokolade", "kcal": 535, "portion": 25, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Zartbitterschokolade", "kcal": 600, "portion": 25, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Gummibärchen", "kcal": 343, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Nutella/Nuss-Nougat-Creme", "kcal": 539, "portion": 20, "unit": "g"}, {"category": "Snacks", "name": "Kartoffelchips", "kcal": 536, "portion": 100, "unit": "g"}, {"category": "Snacks", "name": "Nachos", "kcal": 500, "portion": 100, "unit": "g"}, {"category": "Snacks", "name": "Salzstangen", "kcal": 380, "portion": 50, "unit": "g"}, {"category": "Snacks", "name": "Proteinriegel", "kcal": 360, "portion": 60, "unit": "g"}, {"category": "Eis", "name": "Vanilleeis", "kcal": 207, "portion": 100, "unit": "g"}, {"category": "Eis", "name": "Schokoladeneis", "kcal": 216, "portion": 100, "unit": "g"}, {"category": "Eis", "name": "Wassereis", "kcal": 90, "portion": 70, "unit": "g"}, {"category": "Saucen & Fette", "name": "Ketchup", "kcal": 112, "portion": 30, "unit": "g"}, {"category": "Saucen & Fette", "name": "Mayonnaise", "kcal": 680, "portion": 20, "unit": "g"}, {"category": "Saucen & Fette", "name": "Hollandaise", "kcal": 500, "portion": 50, "unit": "g"}, {"category": "Saucen & Fette", "name": "Teriyaki Sauce", "kcal": 90, "portion": 30, "unit": "g"}, {"category": "Saucen & Fette", "name": "Olivenöl", "kcal": 884, "portion": 10, "unit": "g"}, {"category": "Getränke", "name": "Wasser", "kcal": 0, "portion": 500, "unit": "ml"}, {"category": "Getränke", "name": "Cola", "kcal": 42, "portion": 330, "unit": "ml"}, {"category": "Getränke", "name": "Cola Zero", "kcal": 0.3, "portion": 330, "unit": "ml"}, {"category": "Getränke", "name": "Apfelsaft", "kcal": 46, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Kaffee schwarz", "kcal": 2, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Bier Pils", "kcal": 43, "portion": 500, "unit": "ml"}, {"category": "Gerichte & Fast Food", "name": "Pizza Margherita", "kcal": 250, "portion": 350, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pizza Salami", "kcal": 280, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Döner Kebab", "kcal": 215, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Currywurst mit Pommes", "kcal": 250, "portion": 550, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Hamburger", "kcal": 250, "portion": 180, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Cheeseburger", "kcal": 280, "portion": 200, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Chicken Nuggets", "kcal": 295, "portion": 180, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Spaghetti Bolognese", "kcal": 140, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Lasagne Bolognese", "kcal": 170, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Chili con Carne", "kcal": 120, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Schnitzel mit Pommes", "kcal": 230, "portion": 600, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Maultaschen mit Ei", "kcal": 180, "portion": 400, "unit": "g"}], "customFoods": [], "diary": [], "weights": []};
+let state = loadLocal();
+
+function todayISO(){return new Date().toISOString().slice(0,10)}
+function deepClone(x){return JSON.parse(JSON.stringify(x))}
+function loadLocal(){
+  try{
+    const s=localStorage.getItem("kalorientracker_state_v1");
+    return s?JSON.parse(s):deepClone(DEFAULT_STATE);
+  }catch(e){return deepClone(DEFAULT_STATE)}
+}
+function saveLocal(){localStorage.setItem("kalorientracker_state_v1",JSON.stringify(state));renderAll()}
+function allFoods(){return [...state.foods,...state.customFoods]}
+function categories(){return [...new Set(allFoods().map(f=>f.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"))}
+function getSelectedFood(){return allFoods().find(f=>f.name===dFood.value && f.category===dCategory.value)}
+function kcalFor(food, amount){return food && amount? amount/100*Number(food.kcal||0):0}
+function fmt(n,d=0){return Number(n||0).toLocaleString("de-DE",{maximumFractionDigits:d,minimumFractionDigits:d})}
+
+document.querySelectorAll("#nav button").forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
+  document.getElementById(btn.dataset.view).classList.remove("hidden");
+});
+
+function renderCategoryDropdown(){
+  const current=dCategory.value;
+  dCategory.innerHTML=categories().map(c=>`<option>${esc(c)}</option>`).join("");
+  if([...dCategory.options].some(o=>o.value===current)) dCategory.value=current;
+  renderFoodDropdown();
+}
+function renderFoodDropdown(){
+  const current=dFood.value;
+  const list=allFoods().filter(f=>f.category===dCategory.value).sort((a,b)=>a.name.localeCompare(b.name,"de"));
+  dFood.innerHTML=list.map(f=>`<option>${esc(f.name)}</option>`).join("");
+  if([...dFood.options].some(o=>o.value===current)) dFood.value=current;
+  updateFoodFields();
+}
+function updateFoodFields(){
+  const f=getSelectedFood();
+  dUnit.value=f?.unit||"";
+  dKcal100.value=f?fmt(f.kcal,1):"";
+  dAmount.placeholder=f?.portion?`z.B. ${f.portion}`:"z.B. 200";
+  updateTotal();
+}
+function updateTotal(){
+  const f=getSelectedFood(), amount=Number(dAmount.value||0);
+  dTotal.value=f&&amount?fmt(kcalFor(f,amount),1):"";
+}
+dCategory.onchange=renderFoodDropdown; dFood.onchange=updateFoodFields; dAmount.oninput=updateTotal;
+
+addDiary.onclick=()=>{
+  const f=getSelectedFood(), amount=Number(dAmount.value);
+  if(!f || !amount || !dDate.value){alert("Bitte Datum, Lebensmittel und Menge ausfüllen.");return}
+  state.diary.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),date:dDate.value,meal:dMeal.value,category:f.category,food:f.name,amount,unit:f.unit,kcal100:f.kcal,kcal:kcalFor(f,amount)});
+  dAmount.value="";
+  saveLocal();
+};
+
+function renderDiary(){
+  const rows=[...state.diary].sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`
+  <tr><td>${x.date}</td><td>${esc(x.meal)}</td><td>${esc(x.category)}</td><td>${esc(x.food)}</td><td>${fmt(x.amount,0)} ${x.unit}</td><td>${fmt(x.kcal,0)}</td><td><button onclick="delDiary('${x.id}')">Löschen</button></td></tr>`).join("");
+  diaryTable.innerHTML=`<table><thead><tr><th>Datum</th><th>Mahlzeit</th><th>Kategorie</th><th>Lebensmittel</th><th>Menge</th><th>kcal</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="muted">Noch keine Einträge.</td></tr>'}</tbody></table>`;
+}
+window.delDiary=id=>{state.diary=state.diary.filter(x=>x.id!==id);saveLocal()};
+
+addFood.onclick=()=>{
+  const category=fCategory.value.trim(), name=fName.value.trim(), kcal=Number(fKcal.value), portion=Number(fPortion.value||100), unit=fUnit.value;
+  if(!category||!name||!kcal){alert("Bitte Kategorie, Lebensmittel und kcal/100 ausfüllen.");return}
+  state.customFoods.push({category,name,kcal,portion,unit});
+  fCategory.value=fName.value=fKcal.value=fPortion.value="";
+  saveLocal();
+};
+function renderCustomFoods(){
+  customFoodsTable.innerHTML=`<table><thead><tr><th>Kategorie</th><th>Lebensmittel</th><th>kcal/100</th><th>Portion</th><th></th></tr></thead><tbody>`+
+  (state.customFoods.map((f,i)=>`<tr><td>${esc(f.category)}</td><td>${esc(f.name)}</td><td>${fmt(f.kcal,1)}</td><td>${fmt(f.portion,0)} ${f.unit}</td><td><button onclick="delFood(${i})">Löschen</button></td></tr>`).join("")||'<tr><td colspan="5" class="muted">Noch keine eigenen Lebensmittel.</td></tr>')+`</tbody></table>`;
+}
+window.delFood=i=>{state.customFoods.splice(i,1);saveLocal()};
+
+addWeight.onclick=()=>{
+  const v=Number(wValue.value); if(!wDate.value||!v){alert("Datum und Gewicht eintragen.");return}
+  state.weights.push({id:String(Date.now()+Math.random()),date:wDate.value,weight:v}); wValue.value=""; saveLocal();
+};
+function renderWeight(){
+  const list=[...state.weights].sort((a,b)=>b.date.localeCompare(a.date));
+  weightTable.innerHTML=`<table><thead><tr><th>Datum</th><th>Gewicht</th><th></th></tr></thead><tbody>`+
+  (list.map(x=>`<tr><td>${x.date}</td><td>${fmt(x.weight,1)} kg</td><td><button onclick="delWeight('${x.id}')">Löschen</button></td></tr>`).join("")||'<tr><td colspan="3" class="muted">Noch keine Gewichte.</td></tr>')+`</tbody></table>`;
+}
+window.delWeight=id=>{state.weights=state.weights.filter(x=>x.id!==id);saveLocal()};
+
+saveSettings.onclick=()=>{
+  Object.assign(state.settings,{age:Number(sAge.value),sex:sSex.value,heightCm:Number(sHeight.value),startWeightKg:Number(sStartWeight.value),targetWeightKg:Number(sTargetWeight.value),dailyCalorieTarget:Number(sTargetKcal.value)});
+  saveLocal();
+};
+function renderSettings(){
+  const s=state.settings; sAge.value=s.age;sSex.value=s.sex;sHeight.value=s.heightCm;sStartWeight.value=s.startWeightKg;sTargetWeight.value=s.targetWeightKg;sTargetKcal.value=s.dailyCalorieTarget;
+  const bmr=10*s.startWeightKg+6.25*s.heightCm-5*s.age+(s.sex==="Mann"?5:-161);
+  needs.textContent=`Geschätzter Grundumsatz: ${Math.round(bmr)} kcal · sehr sitzender Gesamtbedarf grob: ${Math.round(bmr*1.2)} kcal/Tag`;
+}
+
+function renderDashboard(){
+  const t=todayISO(), target=Number(state.settings.dailyCalorieTarget||0);
+  const eaten=state.diary.filter(x=>x.date===t).reduce((a,b)=>a+Number(b.kcal||0),0);
+  todayKcal.textContent=fmt(eaten,0);targetKcal.textContent=fmt(target,0);remainingKcal.textContent=fmt(target-eaten,0);
+  remainingKcal.className="metric "+(target-eaten>=0?"good":"bad");
+  const wpct=target?Math.min(100,eaten/target*100):0; kcalBar.style.width=wpct+"%"; kcalBarText.textContent=`${fmt(eaten,0)} von ${fmt(target,0)} kcal`;
+  const ws=[...state.weights].sort((a,b)=>b.date.localeCompare(a.date)); const lw=ws[0]?.weight ?? state.settings.startWeightKg;
+  lastWeight.textContent=fmt(lw,1);
+  const start=Number(state.settings.startWeightKg),goal=Number(state.settings.targetWeightKg);
+  const prog=start===goal?0:Math.max(0,Math.min(100,(start-lw)/(start-goal)*100));
+  weightBar.style.width=prog+"%"; weightBarText.textContent=`${fmt(start-lw,1)} kg von ${fmt(start-goal,1)} kg geschafft`;
+  const rec=[...state.diary].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  recentEntries.innerHTML=rec.length?`<table><tbody>${rec.map(x=>`<tr><td>${x.date}</td><td>${esc(x.food)}</td><td>${fmt(x.amount,0)} ${x.unit}</td><td>${fmt(x.kcal,0)} kcal</td></tr>`).join("")}</tbody></table>`:'<span class="muted">Noch keine Einträge.</span>';
+}
+
+exportData.onclick=()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="kalorientracker-daten.json"; a.click(); URL.revokeObjectURL(a.href);
+};
+importFile.onchange=async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  try{const obj=JSON.parse(await f.text()); if(!obj.settings||!obj.foods)throw new Error("Ungültige Datei"); state=obj; saveLocal(); alert("Daten importiert.");}
+  catch(err){alert("Import fehlgeschlagen: "+err.message)}
+  e.target.value="";
+};
+resetData.onclick=()=>{
+  if(confirm("Wirklich alle lokalen Daten löschen?")){state=deepClone(DEFAULT_STATE);saveLocal()}
+};
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function renderAll(){renderCategoryDropdown();renderDiary();renderCustomFoods();renderWeight();renderSettings();renderDashboard()}
+dDate.value=todayISO();wDate.value=todayISO();renderAll();
+</script>
+</body>
+</html>
