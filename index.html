@@ -136,6 +136,82 @@ input[type="date"]{
 }
 .clear-search.hidden{display:none!important}
 
+
+/* v8 visual refresh — logic/IDs intentionally unchanged */
+:root{
+  --bg:#07111f;--panel:#0d1829;--panel2:#111f33;--line:#23354e;
+  --text:#f7fbff;--muted:#8fa2bd;--green:#20d39a;--green2:#65e6bb;
+  --red:#ff6b6b;--blue:#5b9cff;--shadow:0 14px 38px rgba(0,0,0,.20);
+}
+body{
+  background:
+    radial-gradient(900px 520px at 50% -220px,rgba(32,211,154,.14),transparent 65%),
+    linear-gradient(180deg,#07111f 0%,#0a1423 48%,#08111e 100%);
+}
+.topbar{
+  padding:calc(12px + env(safe-area-inset-top,0px)) 18px 13px;
+  background:rgba(7,17,31,.80);backdrop-filter:blur(22px) saturate(140%);
+  -webkit-backdrop-filter:blur(22px) saturate(140%);border-bottom:1px solid rgba(143,162,189,.13)
+}
+.brand h1{font-size:22px;font-weight:850;letter-spacing:-.65px}.brand .today{font-size:13px;font-weight:650}
+main{padding:14px 14px 24px}
+.card{
+  border-color:rgba(143,162,189,.17);border-radius:24px;padding:18px;
+  background:linear-gradient(155deg,rgba(18,32,52,.96),rgba(10,21,37,.96));
+  box-shadow:0 12px 32px rgba(0,0,0,.16);margin-bottom:14px
+}
+#dashboard>.metrics{gap:10px;margin-bottom:14px}
+#dashboard>.metrics .metric-card{
+  min-height:120px;border-radius:22px;padding:17px;border-color:rgba(143,162,189,.16);
+  background:linear-gradient(150deg,rgba(20,35,57,.95),rgba(12,24,42,.95));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)
+}
+#dashboard>.metrics .metric-card:nth-child(1){background:linear-gradient(150deg,rgba(32,211,154,.11),rgba(12,24,42,.96));border-color:rgba(32,211,154,.22)}
+#dashboard>.metrics .metric-card:nth-child(2){background:linear-gradient(150deg,rgba(91,156,255,.09),rgba(12,24,42,.96));border-color:rgba(91,156,255,.19)}
+.metric-label{font-size:13px;font-weight:650;letter-spacing:.05px;color:#9dafc7}
+.metric-value{font-size:34px;font-weight:850;letter-spacing:-1.2px;font-variant-numeric:tabular-nums}
+.metric-unit{font-size:12px;color:#8396b0;font-weight:600}.good{color:#4be0ac}.bad{color:#ff7474}
+.section-title{font-size:16px;color:#edf6ff;margin-bottom:13px;font-weight:800;letter-spacing:-.2px}
+.progress{height:10px;background:#16243a;box-shadow:inset 0 1px 2px rgba(0,0,0,.22)}
+.progress>div{background:linear-gradient(90deg,#19bd8b,#55dfb2);box-shadow:0 0 16px rgba(32,211,154,.20)}
+#dashboard>.card:nth-of-type(1),#dashboard>.card:nth-of-type(2){padding:16px 18px}
+#dashboard>.card:nth-of-type(3){
+  position:relative;overflow:hidden;border-color:rgba(91,156,255,.20);
+  background:linear-gradient(145deg,rgba(16,32,54,.98),rgba(9,20,36,.98));
+}
+#dashboard>.card:nth-of-type(3)::before{
+  content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-85px;top:-85px;
+  background:radial-gradient(circle,rgba(91,156,255,.13),transparent 68%);pointer-events:none
+}
+#dashboard>.card:nth-of-type(3)>.metrics{gap:10px}
+#dashboard>.card:nth-of-type(3) .metric-card{
+  min-height:105px;border-radius:18px;padding:14px;background:rgba(7,17,31,.46);border-color:rgba(143,162,189,.14)
+}
+#dashboard>.card:nth-of-type(3) .metric-value{font-size:29px}
+#dashboard>.card:nth-of-type(3) hr{border-color:rgba(143,162,189,.15);margin:16px -18px 14px}
+#dashboard>.card:nth-of-type(3)>.inline{
+  gap:10px;padding:2px 0 2px
+}
+#dashboard>.card:nth-of-type(3)>.inline>div{
+  background:rgba(7,17,31,.40);border:1px solid rgba(143,162,189,.12);border-radius:18px;padding:14px
+}
+#healthBalance{font-size:36px}
+#healthUpdated{margin-top:13px!important;padding-top:1px;line-height:1.4}
+.entry{border-radius:18px;padding:15px;background:rgba(7,17,31,.48);border-color:rgba(143,162,189,.15);margin-bottom:10px}
+.entry-name{font-size:16px;letter-spacing:-.15px}.entry-kcal{font-size:16px}.entry-meta{font-size:12px}
+.bottom-nav{
+  background:rgba(6,14,26,.90);backdrop-filter:blur(22px) saturate(145%);-webkit-backdrop-filter:blur(22px) saturate(145%);
+  border-top:1px solid rgba(143,162,189,.13);padding:7px 7px calc(7px + var(--safe-bottom))
+}
+.nav-btn{min-height:58px;border-radius:16px;color:#8193ad;font-size:11px;transition:.15s ease}
+.nav-btn .ico{font-size:21px}.nav-btn.active{color:#71e8c0;background:rgba(32,211,154,.095)}
+input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px}
+.primary{border-radius:16px;background:linear-gradient(180deg,#27d7a0,#11b985);box-shadow:0 8px 20px rgba(32,211,154,.14)}
+.secondary{border-radius:16px;background:#122036;border-color:#2a3d58}
+.meal-btn,.qty-btn{border-radius:14px;background:#091525;border-color:#293b56}
+.cal-preview{border-radius:18px;background:rgba(32,211,154,.08);border-color:rgba(32,211,154,.22)}
+@media(max-width:380px){.metric-value{font-size:30px}#dashboard>.metrics .metric-card{min-height:112px;padding:14px}}
+
 </style>
 </head>
 <body>
@@ -173,12 +249,12 @@ input[type="date"]{
     <div id="weightBarText" class="muted small" style="margin-top:8px"></div>
   </div>
   <div class="card">
-    <div class="section-title">Apple Health heute</div>
+    <div class="section-title">Apple Health · heute</div>
     <div class="metrics">
-      <div class="metric-card"><div class="metric-label">Aktive Kalorien</div><div><div id="healthActive" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
-      <div class="metric-card"><div class="metric-label">Ruheenergie</div><div><div id="healthResting" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
-      <div class="metric-card"><div class="metric-label">Schritte</div><div><div id="healthSteps" class="metric-value">–</div><div class="metric-unit">Schritte</div></div></div>
-      <div class="metric-card"><div class="metric-label">Training</div><div><div id="healthExercise" class="metric-value">–</div><div class="metric-unit">Minuten</div></div></div>
+      <div class="metric-card"><div class="metric-label">⚡ Aktive Energie</div><div><div id="healthActive" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
+      <div class="metric-card"><div class="metric-label">◌ Ruheenergie</div><div><div id="healthResting" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
+      <div class="metric-card"><div class="metric-label">↗ Schritte</div><div><div id="healthSteps" class="metric-value">–</div><div class="metric-unit">Schritte</div></div></div>
+      <div class="metric-card"><div class="metric-label">● Training</div><div><div id="healthExercise" class="metric-value">–</div><div class="metric-unit">Minuten</div></div></div>
     </div>
     <hr>
     <div class="inline">
