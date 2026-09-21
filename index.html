@@ -1,12 +1,13 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="de">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#0b1220">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="KalorienTracker">
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" name="viewport"/>
+<meta content="#0b1220" name="theme-color"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="KalorienTracker" name="apple-mobile-web-app-title"/>
 <title>KalorienTracker</title>
 <style>
 :root{
@@ -315,423 +316,415 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 @media(max-width:430px){.review-grid{grid-template-columns:1fr}.review-grid .field:first-child{grid-column:auto}.review-actions{grid-template-columns:1fr}}
 
 </style>
+
+<style id="v16-extra">
+.library-results{display:grid;gap:8px;margin-top:10px}
+.library-result{border:1px solid rgba(143,162,189,.16);border-radius:16px;padding:12px;background:rgba(7,17,31,.44)}
+.library-result-name{font-weight:800;overflow-wrap:anywhere}
+.library-result-source{font-size:11px;color:#8fa2bd;margin-top:4px}
+.library-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+</style>
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">
-    <h1>KalorienTracker</h1>
-    <div class="today" id="headerDate"></div>
-  </div>
+<div class="brand">
+<h1>KalorienTracker</h1>
+<div class="today" id="headerDate"></div>
+</div>
 </header>
-
 <nav class="bottom-nav">
-  <button class="nav-btn active" data-view="dashboard"><span class="ico">⌂</span><span>Heute</span></button>
-  <button class="nav-btn" data-view="diary"><span class="ico">＋</span><span>Tagebuch</span></button>
-  <button class="nav-btn" data-view="foods"><span class="ico">☷</span><span>Lebensmittel</span></button>
-  <button class="nav-btn" data-view="weight"><span class="ico">◉</span><span>Gewicht</span></button>
-  <button class="nav-btn" data-view="more"><span class="ico">⋯</span><span>Mehr</span></button>
+<button class="nav-btn active" data-view="dashboard"><span class="ico">⌂</span><span>Heute</span></button>
+<button class="nav-btn" data-view="diary"><span class="ico">＋</span><span>Tagebuch</span></button>
+<button class="nav-btn" data-view="foods"><span class="ico">⌕</span><span>Lebensmittel</span></button>
+<button class="nav-btn" data-view="recipes"><span class="ico">☰</span><span>Gerichte</span></button>
+<button class="nav-btn" data-view="more"><span class="ico">⋯</span><span>Mehr</span></button>
 </nav>
-
 <main>
-<section id="dashboard" class="view active">
-  <div class="dashboard-tiles">
-    <div class="summary-card" id="calorieSummaryCard">
-      <div class="summary-head" data-toggle-card="calorieSummaryCard">
-        <div style="min-width:0;flex:1"><div class="summary-title">Kalorien</div><div class="tile-main" id="calorieTileMain">0 / 0</div><div class="tile-sub" id="kcalBarText"></div></div>
-        <div><div class="tile-icon">◔</div><div class="summary-chevron">⌄</div></div>
-      </div>
-      <div class="summary-progress"><div class="progress"><div id="kcalBar" style="width:0%"></div></div></div>
-      <div class="summary-details">
-        <div class="detail-grid">
-          <div class="detail-tile"><div class="metric-label">Gegessen</div><div id="todayKcal" class="metric-value">0</div><div class="metric-unit">kcal</div></div>
-          <div class="detail-tile"><div class="metric-label">Noch frei</div><div id="remainingKcal" class="metric-value good">0</div><div class="metric-unit">kcal</div></div>
-          <div class="detail-tile"><div class="metric-label">Tagesziel</div><div id="targetKcal" class="metric-value">0</div><div class="metric-unit">kcal</div></div>
-          <div class="detail-tile"><div class="metric-label">Gesamtverbrauch</div><div id="healthBurn" class="metric-value">–</div><div class="metric-unit">kcal</div></div>
-          <div class="detail-tile"><div class="metric-label">Tagesbilanz</div><div id="healthBalance" class="metric-value">–</div><div class="metric-unit">kcal</div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="summary-card" id="weightSummaryCard">
-      <div class="summary-head" data-toggle-card="weightSummaryCard">
-        <div style="min-width:0;flex:1"><div class="summary-title">Gewicht</div><div class="tile-main"><span id="lastWeight">–</span> <span style="font-size:14px">kg</span></div><div class="tile-sub" id="weightTrendText">Verlauf & Ziel</div></div>
-        <div><div class="tile-icon">◉</div><div class="summary-chevron">⌄</div></div>
-      </div>
-      <div class="summary-progress"><div class="progress"><div id="weightBar" style="width:0%"></div></div><div id="weightBarText" class="muted small" style="margin-top:7px"></div></div>
-      <div class="summary-details">
-        <div class="range-tabs" id="weightRangeTabs"><button class="range-btn active" data-wrange="30">30 Tage</button><button class="range-btn" data-wrange="90">90 Tage</button><button class="range-btn" data-wrange="365">1 Jahr</button></div>
-        <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
-        <div class="body-grid">
-          <div class="body-item"><div class="metric-label">Körperfett</div><div class="v" id="bodyFatNow">–</div><div class="metric-unit">%</div></div>
-          <div class="body-item"><div class="metric-label">Fettfreie Masse</div><div class="v" id="leanMassNow">–</div><div class="metric-unit">kg</div></div>
-          <div class="body-item"><div class="metric-label">BMI</div><div class="v" id="bmiNow">–</div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="summary-card" id="healthSummaryCard">
-      <div class="summary-head" data-toggle-card="healthSummaryCard">
-        <div style="min-width:0;flex:1"><div class="summary-title">Apple Health</div><div class="tile-main" id="healthTileMain">– Schritte</div><div class="tile-sub" id="healthTileSub">Noch keine Daten</div></div>
-        <div><div class="tile-icon">♥</div><div class="summary-chevron">⌄</div></div>
-      </div>
-      <div class="summary-details">
-        <div class="metrics">
-          <div class="metric-card"><div class="metric-label">⚡ Aktive Energie</div><div><div id="healthActive" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
-          <div class="metric-card"><div class="metric-label">◌ Ruheenergie</div><div><div id="healthResting" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
-          <div class="metric-card"><div class="metric-label">↗ Schritte</div><div><div id="healthSteps" class="metric-value">–</div><div class="metric-unit">Schritte</div></div></div>
-          <div class="metric-card"><div class="metric-label">● Training</div><div><div id="healthExercise" class="metric-value">–</div><div class="metric-unit">Minuten</div></div></div>
-        </div>
-        <p id="healthUpdated" class="muted small" style="margin-bottom:0"></p>
-        <div id="healthImportStatus" class="health-status">Bereit für Health-Import.</div>
-      </div>
-    </div>
-
-    <div class="summary-card" id="nutritionSummaryCard">
-      <div class="summary-head" data-toggle-card="nutritionSummaryCard">
-        <div style="min-width:0;flex:1"><div class="summary-title">Ernährung</div><div class="tile-main" id="nutritionTileMain">– g Eiweiß</div><div class="tile-sub" id="nutritionTileSub">Nährwerte heute</div></div>
-        <div><div class="tile-icon">✦</div><div class="summary-chevron">⌄</div></div>
-      </div>
-      <div class="summary-details">
-        <div class="range-tabs" id="nutritionRangeTabs"><button class="range-btn active" data-nrange="1">Heute</button><button class="range-btn" data-nrange="7">7 Tage</button><button class="range-btn" data-nrange="30">30 Tage</button></div>
-        <div class="nutrition-grid">
-          <div class="nutri-box"><div class="metric-label">Eiweiß</div><div class="metric-value" id="nutriProtein">–</div><div class="metric-unit" id="nutriProteinTarget">g</div></div>
-          <div class="nutri-box"><div class="metric-label">Ballaststoffe</div><div class="metric-value" id="nutriFiber">–</div><div class="metric-unit">g</div></div>
-          <div class="nutri-box"><div class="metric-label">Kohlenhydrate</div><div class="metric-value" id="nutriCarbs">–</div><div class="metric-unit">g</div></div>
-          <div class="nutri-box"><div class="metric-label">Fett</div><div class="metric-value" id="nutriFat">–</div><div class="metric-unit">g</div></div>
-        </div>
-        <div class="nutri-line"><span class="muted">Zucker gesamt</span><b id="nutriSugar">–</b></div>
-        <div class="nutri-line"><span class="muted">Salz</span><b id="nutriSalt">–</b></div>
-        <div class="nutri-line"><span class="muted">Gesättigte Fettsäuren</span><b id="nutriSatFat">–</b></div>
-        <div id="nutritionHistory" class="history-grid" style="margin-top:12px"></div>
-        <div id="nutritionAdvice" class="coach-box" style="margin-top:12px"></div>
-        <div id="nutritionCoverage" class="coverage"></div>
-      </div>
-    </div>
-
-    <div class="summary-card" id="coachSummaryCard">
-      <div class="summary-head" data-toggle-card="coachSummaryCard">
-        <div style="min-width:0;flex:1"><div class="summary-title">Smart Coach</div><div class="tile-main" id="coachTileMain">Noch Daten sammeln</div><div class="tile-sub" id="coachTileSub">Analyse aus Essen, Health & Gewicht</div></div>
-        <div><div class="tile-icon">◎</div><div class="summary-chevron">⌄</div></div>
-      </div>
-      <div class="summary-details">
-        <div class="range-tabs" id="coachRangeTabs"><button class="range-btn" data-crange="7">7 Tage</button><button class="range-btn" data-crange="14">14 Tage</button><button class="range-btn active" data-crange="30">30 Tage</button><button class="range-btn" data-crange="90">90 Tage</button></div>
-        <div class="kpi-row">
-          <div class="kpi"><div class="metric-label" id="coachIntakeLabel">Ø Essen</div><div class="v" id="coachIntake7">–</div><div class="metric-unit">kcal/Tag</div></div>
-          <div class="kpi"><div class="metric-label" id="coachBurnLabel">Ø Verbrauch</div><div class="v" id="coachBurn7">–</div><div class="metric-unit">kcal/Tag</div></div>
-          <div class="kpi"><div class="metric-label">Gewichtstrend</div><div class="v" id="coachWeightTrend">–</div><div class="metric-unit">kg/Woche</div></div>
-          <div class="kpi"><div class="metric-label">abgeleiteter Bedarf</div><div class="v" id="coachTdee">–</div><div class="metric-unit">kcal/Tag</div></div>
-        </div>
-        <div id="coachAdvice" class="coach-box" style="margin-top:12px"></div>
-        <div class="coverage">Die Analyse läuft lokal im Browser. Je mehr vollständige Tage und Gewichtsmessungen vorhanden sind, desto belastbarer wird sie.</div>
-      </div>
-    </div>
-
-    <div class="summary-card" id="diarySummaryCard">
-      <div class="summary-head" data-toggle-card="diarySummaryCard">
-        <div style="min-width:0;flex:1"><div class="summary-title">Tagebuch</div><div class="tile-main" id="diaryTileMain">0 Einträge</div><div class="tile-sub" id="diaryTileSub">Heute</div></div>
-        <div><div class="tile-icon">＋</div><div class="summary-chevron">⌄</div></div>
-      </div>
-      <div class="summary-details">
-        <div id="todayEntries"></div>
-        <button class="secondary dashboard-quick-btn" id="dashboardAddEntry">Eintrag hinzufügen</button>
-      </div>
-    </div>
-  </div>
+<section class="view active" id="dashboard">
+<div class="dashboard-tiles">
+<div class="summary-card" id="calorieSummaryCard">
+<div class="summary-head" data-toggle-card="calorieSummaryCard">
+<div style="min-width:0;flex:1"><div class="summary-title">Kalorien</div><div class="tile-main" id="calorieTileMain">0 / 0</div><div class="tile-sub" id="kcalBarText"></div></div>
+<div><div class="tile-icon">◔</div><div class="summary-chevron">⌄</div></div>
+</div>
+<div class="summary-progress"><div class="progress"><div id="kcalBar" style="width:0%"></div></div></div>
+<div class="summary-details">
+<div class="detail-grid">
+<div class="detail-tile"><div class="metric-label">Gegessen</div><div class="metric-value" id="todayKcal">0</div><div class="metric-unit">kcal</div></div>
+<div class="detail-tile"><div class="metric-label">Noch frei</div><div class="metric-value good" id="remainingKcal">0</div><div class="metric-unit">kcal</div></div>
+<div class="detail-tile"><div class="metric-label">Tagesziel</div><div class="metric-value" id="targetKcal">0</div><div class="metric-unit">kcal</div></div>
+<div class="detail-tile"><div class="metric-label">Gesamtverbrauch</div><div class="metric-value" id="healthBurn">–</div><div class="metric-unit">kcal</div></div>
+<div class="detail-tile"><div class="metric-label">Tagesbilanz</div><div class="metric-value" id="healthBalance">–</div><div class="metric-unit">kcal</div></div>
+</div>
+</div>
+</div>
+<div class="summary-card" id="weightSummaryCard">
+<div class="summary-head" data-toggle-card="weightSummaryCard">
+<div style="min-width:0;flex:1"><div class="summary-title">Gewicht</div><div class="tile-main"><span id="lastWeight">–</span> <span style="font-size:14px">kg</span></div><div class="tile-sub" id="weightTrendText">Verlauf &amp; Ziel</div></div>
+<div><div class="tile-icon">◉</div><div class="summary-chevron">⌄</div></div>
+</div>
+<div class="summary-progress"><div class="progress"><div id="weightBar" style="width:0%"></div></div><div class="muted small" id="weightBarText" style="margin-top:7px"></div></div>
+<div class="summary-details">
+<div class="range-tabs" id="weightRangeTabs"><button class="range-btn active" data-wrange="30">30 Tage</button><button class="range-btn" data-wrange="90">90 Tage</button><button class="range-btn" data-wrange="365">1 Jahr</button></div>
+<div class="chart-wrap"><canvas id="weightChart"></canvas></div>
+<div class="body-grid">
+<div class="body-item"><div class="metric-label">Körperfett</div><div class="v" id="bodyFatNow">–</div><div class="metric-unit">%</div></div>
+<div class="body-item"><div class="metric-label">Fettfreie Masse</div><div class="v" id="leanMassNow">–</div><div class="metric-unit">kg</div></div>
+<div class="body-item"><div class="metric-label">BMI</div><div class="v" id="bmiNow">–</div></div>
+</div>
+</div>
+</div>
+<div class="summary-card" id="healthSummaryCard">
+<div class="summary-head" data-toggle-card="healthSummaryCard">
+<div style="min-width:0;flex:1"><div class="summary-title">Apple Health</div><div class="tile-main" id="healthTileMain">– Schritte</div><div class="tile-sub" id="healthTileSub">Noch keine Daten</div></div>
+<div><div class="tile-icon">♥</div><div class="summary-chevron">⌄</div></div>
+</div>
+<div class="summary-details">
+<div class="metrics">
+<div class="metric-card"><div class="metric-label">⚡ Aktive Energie</div><div><div class="metric-value" id="healthActive">–</div><div class="metric-unit">kcal</div></div></div>
+<div class="metric-card"><div class="metric-label">◌ Ruheenergie</div><div><div class="metric-value" id="healthResting">–</div><div class="metric-unit">kcal</div></div></div>
+<div class="metric-card"><div class="metric-label">↗ Schritte</div><div><div class="metric-value" id="healthSteps">–</div><div class="metric-unit">Schritte</div></div></div>
+<div class="metric-card"><div class="metric-label">● Training</div><div><div class="metric-value" id="healthExercise">–</div><div class="metric-unit">Minuten</div></div></div>
+</div>
+<p class="muted small" id="healthUpdated" style="margin-bottom:0"></p>
+<div class="health-status" id="healthImportStatus">Bereit für Health-Import.</div>
+</div>
+</div>
+<div class="summary-card" id="nutritionSummaryCard">
+<div class="summary-head" data-toggle-card="nutritionSummaryCard">
+<div style="min-width:0;flex:1"><div class="summary-title">Ernährung</div><div class="tile-main" id="nutritionTileMain">– g Eiweiß</div><div class="tile-sub" id="nutritionTileSub">Nährwerte heute</div></div>
+<div><div class="tile-icon">✦</div><div class="summary-chevron">⌄</div></div>
+</div>
+<div class="summary-details">
+<div class="range-tabs" id="nutritionRangeTabs"><button class="range-btn active" data-nrange="1">Heute</button><button class="range-btn" data-nrange="7">7 Tage</button><button class="range-btn" data-nrange="30">30 Tage</button></div>
+<div class="nutrition-grid">
+<div class="nutri-box"><div class="metric-label">Eiweiß</div><div class="metric-value" id="nutriProtein">–</div><div class="metric-unit" id="nutriProteinTarget">g</div></div>
+<div class="nutri-box"><div class="metric-label">Ballaststoffe</div><div class="metric-value" id="nutriFiber">–</div><div class="metric-unit">g</div></div>
+<div class="nutri-box"><div class="metric-label">Kohlenhydrate</div><div class="metric-value" id="nutriCarbs">–</div><div class="metric-unit">g</div></div>
+<div class="nutri-box"><div class="metric-label">Fett</div><div class="metric-value" id="nutriFat">–</div><div class="metric-unit">g</div></div>
+</div>
+<div class="nutri-line"><span class="muted">Zucker gesamt</span><b id="nutriSugar">–</b></div>
+<div class="nutri-line"><span class="muted">Salz</span><b id="nutriSalt">–</b></div>
+<div class="nutri-line"><span class="muted">Gesättigte Fettsäuren</span><b id="nutriSatFat">–</b></div>
+<div class="history-grid" id="nutritionHistory" style="margin-top:12px"></div>
+<div class="coach-box" id="nutritionAdvice" style="margin-top:12px"></div>
+<div class="coverage" id="nutritionCoverage"></div>
+</div>
+</div>
+<div class="summary-card" id="coachSummaryCard">
+<div class="summary-head" data-toggle-card="coachSummaryCard">
+<div style="min-width:0;flex:1"><div class="summary-title">Smart Coach</div><div class="tile-main" id="coachTileMain">Noch Daten sammeln</div><div class="tile-sub" id="coachTileSub">Analyse aus Essen, Health &amp; Gewicht</div></div>
+<div><div class="tile-icon">◎</div><div class="summary-chevron">⌄</div></div>
+</div>
+<div class="summary-details">
+<div class="range-tabs" id="coachRangeTabs"><button class="range-btn" data-crange="7">7 Tage</button><button class="range-btn" data-crange="14">14 Tage</button><button class="range-btn active" data-crange="30">30 Tage</button><button class="range-btn" data-crange="90">90 Tage</button></div>
+<div class="kpi-row">
+<div class="kpi"><div class="metric-label" id="coachIntakeLabel">Ø Essen</div><div class="v" id="coachIntake7">–</div><div class="metric-unit">kcal/Tag</div></div>
+<div class="kpi"><div class="metric-label" id="coachBurnLabel">Ø Verbrauch</div><div class="v" id="coachBurn7">–</div><div class="metric-unit">kcal/Tag</div></div>
+<div class="kpi"><div class="metric-label">Gewichtstrend</div><div class="v" id="coachWeightTrend">–</div><div class="metric-unit">kg/Woche</div></div>
+<div class="kpi"><div class="metric-label">abgeleiteter Bedarf</div><div class="v" id="coachTdee">–</div><div class="metric-unit">kcal/Tag</div></div>
+</div>
+<div class="coach-box" id="coachAdvice" style="margin-top:12px"></div>
+<div class="coverage">Die Analyse läuft lokal im Browser. Je mehr vollständige Tage und Gewichtsmessungen vorhanden sind, desto belastbarer wird sie.</div>
+</div>
+</div>
+<div class="summary-card" id="diarySummaryCard">
+<div class="summary-head" data-toggle-card="diarySummaryCard">
+<div style="min-width:0;flex:1"><div class="summary-title">Tagebuch</div><div class="tile-main" id="diaryTileMain">0 Einträge</div><div class="tile-sub" id="diaryTileSub">Heute</div></div>
+<div><div class="tile-icon">＋</div><div class="summary-chevron">⌄</div></div>
+</div>
+<div class="summary-details">
+<div id="todayEntries"></div>
+<button class="secondary dashboard-quick-btn" id="dashboardAddEntry">Eintrag hinzufügen</button>
+</div>
+</div>
+</div>
 </section>
-<section id="diary" class="view">
-  <div class="card">
-    <h2>Eintrag hinzufügen</h2>
-    <div class="field"><label>Datum</label><input id="dDate" type="date"></div>
-    <div style="height:10px"></div>
-    <div class="field"><label>Mahlzeit</label>
-      <div class="meal-grid" id="mealGrid">
-        <button class="meal-btn active" data-meal="Frühstück">Frühstück</button>
-        <button class="meal-btn" data-meal="Mittagessen">Mittagessen</button>
-        <button class="meal-btn" data-meal="Abendessen">Abendessen</button>
-        <button class="meal-btn" data-meal="Snack">Snack</button>
-        <button class="meal-btn" data-meal="Getränk">Getränk</button>
-        <button class="meal-btn" data-meal="Sonstiges">Sonstiges</button>
-      </div>
-    </div>
-    <div style="height:12px"></div>
-    <div class="field search-wrap">
-      <label>Lebensmittel suchen</label>
-      <div class="search-input-row">
-        <input id="dSearch" type="search" autocomplete="off" placeholder="z. B. Möhre, Senf, Knusperbrot …">
-        <button type="button" id="clearSearch" class="clear-search hidden" aria-label="Eingabe löschen">×</button>
-      </div>
-      <div id="suggestions" class="suggestions hidden"></div>
-      <div id="selectedFoodInfo" class="selected-food hidden"></div>
-      <button type="button" id="favoriteSelectedFood" class="favorite-btn hidden" style="margin-top:8px">☆ Favorit</button>
-      <div class="piece-hint">Lokale Treffer werden nach Namenspassung sortiert. Häufigkeit entscheidet nur bei gleich guten Treffern.</div>
-      <div class="tool-row">
-        <button type="button" class="secondary" id="onlineSearchBtn">Open Food Facts</button>
-        <button type="button" class="secondary" id="webSearchBtn">Web weitersuchen</button>
-      </div>
-      <div class="tool-row">
-        <button type="button" class="secondary" id="diaryBarcodeScanBtn">▣ Barcode scannen</button>
-        <button type="button" class="secondary" id="diaryPhotoBtn">📷 Nährwerte fotografieren</button>
-      </div>
-      <input id="diaryPhotoInput" type="file" accept="image/*" capture="environment" style="display:none">
-      <div class="import-box">
-        <div class="muted small" style="margin-bottom:7px">Produktseite gefunden? FDDB-/Produkt-URL einfügen und übernehmen.</div>
-        <div class="inline-actions">
-          <input id="diaryImportUrl" type="url" inputmode="url" placeholder="https://fddb.info/…">
-          <button type="button" class="mini-btn" id="diaryImportUrlBtn">Importieren</button>
-        </div>
-      </div>
-      <div id="onlineSearchStatus" class="piece-hint"></div>
-      <div id="onlineResults" class="online-results hidden"></div>
-      <div id="diaryOcrStatus" class="ocr-status"></div>
-    </div>
-    <div style="height:10px"></div>
-    <div class="field">
-      <label>Mengenart</label>
-      <div class="qty-mode">
-        <button type="button" class="qty-btn active" id="qtyBase">g / ml</button>
-        <button type="button" class="qty-btn" id="qtyPiece">Stück / Portion</button>
-      </div>
-    </div>
-    <div class="inline">
-      <div class="field"><label id="amountLabel">Menge</label><input id="dAmount" type="number" inputmode="decimal" min="0" step="1" placeholder="200"></div>
-      <div class="field"><label>Einheit</label><input id="dUnit" readonly></div>
-    </div>
-    <div id="pieceHint" class="piece-hint hidden"></div>
-    <div class="cal-preview"><div class="muted small">Dieser Eintrag</div><div class="big"><span id="previewKcal">0</span> kcal</div><div class="small muted"><span id="previewPer100">0</span> kcal / 100</div></div>
-    <button class="primary" id="addDiary">Eintrag speichern</button>
-  </div>
-  <div class="card">
-    <div class="section-title">Tagebuch nach Tag</div>
-    <div class="diary-day-nav">
-      <button type="button" class="day-arrow" id="diaryPrevDay" aria-label="Vorheriger Tag">‹</button>
-      <input id="diaryBrowseDate" type="date">
-      <button type="button" class="day-arrow" id="diaryNextDay" aria-label="Nächster Tag">›</button>
-    </div>
-    <div id="diaryDaySummary" class="muted small" style="margin:10px 2px 12px"></div>
-    <div id="diaryList"></div>
-  </div>
+<section class="view" id="diary">
+<div class="card">
+<h2>Eintrag hinzufügen</h2>
+<div class="field"><label>Datum</label><input id="dDate" type="date"/></div>
+<div style="height:10px"></div>
+<div class="field"><label>Mahlzeit</label>
+<div class="meal-grid" id="mealGrid">
+<button class="meal-btn active" data-meal="Frühstück">Frühstück</button>
+<button class="meal-btn" data-meal="Mittagessen">Mittagessen</button>
+<button class="meal-btn" data-meal="Abendessen">Abendessen</button>
+<button class="meal-btn" data-meal="Snack">Snack</button>
+<button class="meal-btn" data-meal="Getränk">Getränk</button>
+<button class="meal-btn" data-meal="Sonstiges">Sonstiges</button>
+</div>
+</div>
+<div style="height:12px"></div>
+<div class="field search-wrap">
+<label>Lebensmittel oder Gericht suchen</label>
+<div class="search-input-row">
+<input autocomplete="off" id="dSearch" placeholder="Lebensmittel oder Gericht …" type="search"/>
+<button aria-label="Eingabe löschen" class="clear-search hidden" id="clearSearch" type="button">×</button>
+</div>
+<div class="suggestions hidden" id="suggestions"></div>
+<div class="selected-food hidden" id="selectedFoodInfo"></div>
+<button class="favorite-btn hidden" id="favoriteSelectedFood" style="display:none" type="button">☆ Favorit</button>
+<div style="display:none">
+<button id="onlineSearchBtn" type="button"></button><button id="webSearchBtn" type="button"></button>
+<button id="diaryBarcodeScanBtn" type="button"></button><button id="diaryPhotoBtn" type="button"></button>
+<input id="diaryPhotoInput" type="file"/><input id="diaryImportUrl"/>
+<button id="diaryImportUrlBtn" type="button"></button>
+<div id="onlineSearchStatus"></div><div id="onlineResults"></div><div id="diaryOcrStatus"></div>
+</div>
+</div>
+<div style="height:10px"></div>
+<div class="field">
+<label>Mengenart</label>
+<div class="qty-mode">
+<button class="qty-btn active" id="qtyBase" type="button">g / ml</button>
+<button class="qty-btn" id="qtyPiece" type="button">Stück / Portion</button>
+</div>
+</div>
+<div class="inline">
+<div class="field"><label id="amountLabel">Menge</label><input id="dAmount" inputmode="decimal" min="0" placeholder="200" step="1" type="number"/></div>
+<div class="field"><label>Einheit</label><input id="dUnit" readonly=""/></div>
+</div>
+<div class="piece-hint hidden" id="pieceHint"></div>
+<div class="cal-preview"><div class="muted small">Dieser Eintrag</div><div class="big"><span id="previewKcal">0</span> kcal</div><div class="small muted"><span id="previewPer100">0</span> kcal / 100</div></div>
+<button class="primary" id="addDiary">Eintrag speichern</button>
+</div>
+<div class="card">
+<div class="section-title">Tagebuch nach Tag</div>
+<div class="diary-day-nav">
+<button aria-label="Vorheriger Tag" class="day-arrow" id="diaryPrevDay" type="button">‹</button>
+<input id="diaryBrowseDate" type="date"/>
+<button aria-label="Nächster Tag" class="day-arrow" id="diaryNextDay" type="button">›</button>
+</div>
+<div class="muted small" id="diaryDaySummary" style="margin:10px 2px 12px"></div>
+<div id="diaryList"></div>
+</div>
 </section>
-
-<section id="foods" class="view">
-  <div class="card">
-    <h2>Favoriten</h2>
-    <p class="muted small">Lebensmittel, die du selbst mit ☆ markiert hast.</p>
-    <div id="favoritesList"></div>
-  </div>
-
-  <div class="card">
-    <h2>Gericht / Rezept erstellen</h2>
-    <p class="muted small">Zutaten hinzufügen, Gesamtwerte berechnen lassen und später nur noch die gegessene Menge eintragen.</p>
-    <div class="field"><label>Name des Gerichts</label><input id="rName" placeholder="z. B. Meine Bolognese"></div>
-    <div style="height:10px"></div>
-    <div class="field recipe-search-wrap">
-      <label>Zutat suchen</label><input id="rSearch" type="search" autocomplete="off" placeholder="z. B. Rinderhack, Tomaten …">
-      <div id="rSuggestions" class="recipe-suggestions hidden"></div>
-    </div>
-    <div class="tool-row">
-      <button type="button" class="secondary" id="rOnlineSearchBtn">Online suchen</button>
-      <button type="button" class="secondary" id="rWebSearchBtn">Web weitersuchen</button>
-    </div>
-    <div class="tool-row">
-      <button type="button" class="secondary" id="rBarcodeScanBtn">▣ Barcode scannen</button>
-      <button type="button" class="secondary" id="rPhotoBtn">📷 Nährwerte fotografieren</button>
-    </div>
-    <input id="rPhotoInput" type="file" accept="image/*" capture="environment" style="display:none">
-    <div class="import-box">
-      <div class="muted small" style="margin-bottom:7px">Produktseite als Zutat importieren</div>
-      <div class="inline-actions">
-        <input id="rImportUrl" type="url" inputmode="url" placeholder="https://fddb.info/…">
-        <button type="button" class="mini-btn" id="rImportUrlBtn">Importieren</button>
-      </div>
-    </div>
-    <div id="rOnlineStatus" class="ocr-status"></div>
-    <div id="rOnlineResults" class="online-results hidden"></div>
-    <div id="rOcrStatus" class="ocr-status"></div>
-    <div style="height:8px"></div>
-    <div class="inline">
-      <div class="field"><label>Menge</label><input id="rAmount" type="number" inputmode="decimal" min="0" step="1" placeholder="200"></div>
-      <div class="field"><label>Einheit</label><input id="rUnit" readonly></div>
-    </div>
-    <div id="rSelectedInfo" class="piece-hint"></div>
-    <div style="height:8px"></div><button type="button" class="secondary" id="rAddIngredient">Zutat hinzufügen</button>
-    <div class="subtle-title">Zutaten</div><div id="rIngredientList"></div>
-    <div id="rSummary" class="recipe-summary">Noch keine Zutaten.</div>
-    <div class="inline">
-      <div class="field"><label>1 Portion wiegt (optional)</label><input id="rPortionWeight" type="number" inputmode="decimal" step="1" placeholder="z. B. 420"></div>
-      <div class="field"><label>Bezeichnung</label><input id="rPortionLabel" value="Portion" placeholder="Portion"></div>
-    </div>
-    <div style="height:10px"></div><button type="button" class="primary" id="rSaveRecipe">Gericht speichern</button>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Gespeicherte Gerichte</div>
-    <div id="recipesList"></div>
-  </div>
-
-  <div class="card">
-    <h2>Eigenes Lebensmittel</h2>
-    <p class="muted small">Du kannst die Werte eintippen oder die Nährwertdeklaration fotografieren.</p>
-    <div class="form-grid">
-      <div class="tool-row">
-        <button type="button" class="secondary" id="fBarcodeScanBtn">▣ Barcode scannen</button>
-        <button type="button" class="secondary" id="fPhotoBtn">📷 Nährwertdeklaration fotografieren</button>
-      </div>
-      <input id="fPhotoInput" type="file" accept="image/*" capture="environment" style="display:none">
-      <div id="fOcrStatus" class="ocr-status"></div>
-      <div class="field"><label>Lebensmittel</label><input id="fName" placeholder="z.B. Proteinpudding"></div>
-      <div class="inline">
-        <div class="field"><label>kcal / 100</label><input id="fKcal" type="number" inputmode="decimal" step="0.1"></div>
-        <div class="field"><label>Portion</label><input id="fPortion" type="number" inputmode="decimal" step="1" value="100"></div>
-      </div>
-      <div class="field"><label>Einheit</label><select id="fUnit"><option>g</option><option>ml</option></select></div>
-      <div class="section-title" style="margin-top:4px">Nährwerte pro 100 g/ml <span class="muted small">(optional)</span></div>
-      <div class="inline">
-        <div class="field"><label>Eiweiß g</label><input id="fProtein" type="number" inputmode="decimal" step="0.1"></div>
-        <div class="field"><label>Kohlenhydrate g</label><input id="fCarbs" type="number" inputmode="decimal" step="0.1"></div>
-      </div>
-      <div class="inline">
-        <div class="field"><label>Fett g</label><input id="fFat" type="number" inputmode="decimal" step="0.1"></div>
-        <div class="field"><label>Ballaststoffe g</label><input id="fFiber" type="number" inputmode="decimal" step="0.1"></div>
-      </div>
-      <div class="inline">
-        <div class="field"><label>Zucker g</label><input id="fSugar" type="number" inputmode="decimal" step="0.1"></div>
-        <div class="field"><label>Salz g</label><input id="fSalt" type="number" inputmode="decimal" step="0.01"></div>
-      </div>
-      <div class="field"><label>Gesättigte Fettsäuren g</label><input id="fSatFat" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="inline">
-        <div class="field"><label>Gewicht je Stück (optional)</label><input id="fPieceWeight" type="number" inputmode="decimal" step="1" placeholder="z.B. 100"></div>
-        <div class="field"><label>Stück-Bezeichnung</label><input id="fPieceLabel" placeholder="z.B. Stück, Scheibe"></div>
-      </div>
-      <button class="primary" id="addFood">Lebensmittel speichern</button>
-    </div>
-  </div>
-  <div class="card">
-    <div class="section-title">Eigene Lebensmittel</div>
-    <div id="customFoodsList"></div>
-  </div>
-</section>
-
-<section id="weight" class="view">
-  <div class="card">
-    <h2>Körperdaten eintragen</h2>
-    <div class="form-grid two">
-      <div class="field"><label>Datum</label><input id="wDate" type="date"></div>
-      <div class="field"><label>Gewicht kg</label><input id="wValue" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Körperfett % <span class="muted">(optional)</span></label><input id="wBodyFat" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Fettfreie Masse kg <span class="muted">(optional)</span></label><input id="wLeanMass" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>BMI <span class="muted">(optional)</span></label><input id="wBmi" type="number" inputmode="decimal" step="0.1"></div>
-    </div>
-    <div style="height:12px"></div>
-    <button class="primary" id="addWeight">Körperdaten speichern</button>
-    <div class="coverage">Vorbereitet für Eufy/Apple Health: sobald die Waage ihre Werte in Health schreibt, können Gewicht, Körperfett, fettfreie Masse und BMI automatisch übernommen werden.</div>
-  </div>
-  <div class="card"><div class="section-title">Verlauf</div><div id="weightList"></div></div>
-</section>
-
-<section id="more" class="view">
-  <div class="card">
-    <h2>Einstellungen</h2>
-    <div class="form-grid two">
-      <div class="field"><label>Alter</label><input id="sAge" type="number" inputmode="numeric"></div>
-      <div class="field"><label>Geschlecht</label><select id="sSex"><option>Mann</option><option>Frau</option></select></div>
-      <div class="field"><label>Größe cm</label><input id="sHeight" type="number" inputmode="numeric"></div>
-      <div class="field"><label>Startgewicht kg</label><input id="sStartWeight" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Zielgewicht kg</label><input id="sTargetWeight" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Kalorienziel / Tag</label><input id="sTargetKcal" type="number" inputmode="numeric"></div>
-    </div>
-    <div style="height:12px"></div>
-    <button class="primary" id="saveSettings">Einstellungen speichern</button>
-    <p id="needs" class="muted small"></p>
-  </div>
+<section class="view" id="foods"><div class="card">
+<h2>Lebensmittelsuche</h2>
+<div class="field library-search-wrap">
+<label>Lebensmittel suchen</label>
+<div class="search-input-row">
+<input autocomplete="off" id="librarySearch" placeholder="z. B. Geflügel Laugendog Lidl" type="search"/>
+<button aria-label="Suche löschen" class="clear-search hidden" id="libraryClearSearch" type="button">×</button>
+</div>
+<div class="piece-hint" id="librarySearchStatus">Lokale Treffer erscheinen sofort. Online wird automatisch ergänzt.</div>
+<div class="library-results" id="libraryResults"></div>
+</div>
+<div class="tool-row" style="margin-top:12px">
+<button class="secondary" id="libraryBarcodeScanBtn" type="button">▣ Barcode scannen</button>
+<button class="secondary" id="libraryPhotoBtn" type="button">📷 Nährwerte fotografieren</button>
+</div>
+<input accept="image/*" capture="environment" id="libraryPhotoInput" style="display:none" type="file"/>
+<div class="ocr-status" id="libraryPhotoStatus"></div>
+<details style="margin-top:10px">
+<summary style="cursor:pointer;color:#9dafc7;font-size:13px;padding:8px 2px">Produktlink importieren</summary>
+<div class="import-box">
+<div class="inline-actions">
+<input id="libraryImportUrl" inputmode="url" placeholder="https://fddb.info/…" type="url"/>
+<button class="mini-btn" id="libraryImportUrlBtn" type="button">Importieren</button>
+</div>
+</div>
+</details>
+</div><div class="card">
+<h2>Favoriten</h2>
+<p class="muted small">Lebensmittel, die du selbst mit ☆ markiert hast.</p>
+<div id="favoritesList"></div>
+</div><div class="card">
+<h2>Eigenes Lebensmittel</h2>
+<p class="muted small">Du kannst die Werte eintippen oder die Nährwertdeklaration fotografieren.</p>
+<div class="form-grid">
+<div class="tool-row" style="display:none">
+<button class="secondary" id="fBarcodeScanBtn" type="button">▣ Barcode scannen</button>
+<button class="secondary" id="fPhotoBtn" type="button">📷 Nährwertdeklaration fotografieren</button>
+</div>
+<input accept="image/*" capture="environment" id="fPhotoInput" style="display:none" type="file"/>
+<div class="ocr-status" id="fOcrStatus" style="display:none"></div>
+<div class="field"><label>Lebensmittel</label><input id="fName" placeholder="z.B. Proteinpudding"/></div>
+<div class="inline">
+<div class="field"><label>kcal / 100</label><input id="fKcal" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Portion</label><input id="fPortion" inputmode="decimal" step="1" type="number" value="100"/></div>
+</div>
+<div class="field"><label>Einheit</label><select id="fUnit"><option>g</option><option>ml</option></select></div>
+<div class="section-title" style="margin-top:4px">Nährwerte pro 100 g/ml <span class="muted small">(optional)</span></div>
+<div class="inline">
+<div class="field"><label>Eiweiß g</label><input id="fProtein" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Kohlenhydrate g</label><input id="fCarbs" inputmode="decimal" step="0.1" type="number"/></div>
+</div>
+<div class="inline">
+<div class="field"><label>Fett g</label><input id="fFat" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Ballaststoffe g</label><input id="fFiber" inputmode="decimal" step="0.1" type="number"/></div>
+</div>
+<div class="inline">
+<div class="field"><label>Zucker g</label><input id="fSugar" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Salz g</label><input id="fSalt" inputmode="decimal" step="0.01" type="number"/></div>
+</div>
+<div class="field"><label>Gesättigte Fettsäuren g</label><input id="fSatFat" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="inline">
+<div class="field"><label>Gewicht je Stück (optional)</label><input id="fPieceWeight" inputmode="decimal" placeholder="z.B. 100" step="1" type="number"/></div>
+<div class="field"><label>Stück-Bezeichnung</label><input id="fPieceLabel" placeholder="z.B. Stück, Scheibe"/></div>
+</div>
+<button class="primary" id="addFood">Lebensmittel speichern</button>
+</div>
+</div><div class="card">
+<div class="section-title">Eigene Lebensmittel</div>
+<div id="customFoodsList"></div>
+</div></section><section class="view" id="recipes"><div class="card">
+<h2>Gerichte</h2>
+<p class="muted">Eigene Gerichte bestehen aus bereits gespeicherten Lebensmitteln. Dadurch bleibt der Rezepteditor übersichtlich.</p>
+<button class="secondary" id="goToFoodsFromRecipes" type="button">Fehlendes Lebensmittel hinzufügen</button>
+</div><div class="card">
+<h2>Gericht / Rezept erstellen</h2>
+<p class="muted small">Zutaten hinzufügen, Gesamtwerte berechnen lassen und später nur noch die gegessene Menge eintragen.</p>
+<div class="field"><label>Name des Gerichts</label><input id="rName" placeholder="z. B. Meine Bolognese"/></div>
+<div style="height:10px"></div>
+<div class="field recipe-search-wrap">
+<label>Zutat suchen</label><input autocomplete="off" id="rSearch" placeholder="z. B. Rinderhack, Tomaten …" type="search"/>
+<div class="recipe-suggestions hidden" id="rSuggestions"></div>
+</div>
+<div class="piece-hint" style="margin:8px 0 10px">Die Suche verwendet gespeicherte Lebensmittel. Fehlt etwas, legst du es zuerst unter „Lebensmittel“ an.</div>
+<div style="display:none">
+<button id="rOnlineSearchBtn" type="button"></button><button id="rWebSearchBtn" type="button"></button>
+<button id="rBarcodeScanBtn" type="button"></button><button id="rPhotoBtn" type="button"></button>
+<input id="rPhotoInput" type="file"/><input id="rImportUrl"/><button id="rImportUrlBtn" type="button"></button>
+<div id="rOnlineStatus"></div><div id="rOnlineResults"></div><div id="rOcrStatus"></div>
+</div>
 
 
-  <div class="card">
-    <h2>Ernährungsprofil</h2>
-    <p class="muted">Diese Angaben werden nur lokal gespeichert und bei Ernährungshinweisen berücksichtigt.</p>
-    <div class="toggle-grid">
-      <label class="toggle-row"><input type="checkbox" id="prefGluten"><span>Gluten/Weizen meiden</span></label>
-      <label class="toggle-row"><input type="checkbox" id="prefLactose"><span>Laktose meiden</span></label>
-      <label class="toggle-row"><input type="checkbox" id="prefNuts"><span>Nüsse meiden</span></label>
-      <label class="toggle-row"><input type="checkbox" id="prefVegetarian"><span>Vegetarisch</span></label>
-      <label class="toggle-row"><input type="checkbox" id="prefVegan"><span>Vegan</span></label>
-    </div>
-    <div class="field" style="margin-top:10px"><label>Weitere Einschränkungen / Hinweise</label><textarea id="prefCustom" rows="3" placeholder="z. B. bestimmte Lebensmittel meiden"></textarea></div>
-    <div style="height:10px"></div><button class="primary" id="saveDietPrefs">Ernährungsprofil speichern</button>
-  </div>
 
-  <div class="card">
-    <h2>Apple Health</h2>
-    <p class="muted">Ein iPhone-Kurzbefehl liest Health-Daten und übergibt sie an diese Seite. Die Werte werden nur lokal in deinem Browser gespeichert.</p>
-    <div class="form-grid">
-      <div class="inline">
-        <div class="field"><label>Aktive Kalorien heute</label><input id="hActive" type="number" inputmode="decimal" step="0.1"></div>
-        <div class="field"><label>Ruheenergie heute</label><input id="hResting" type="number" inputmode="decimal" step="0.1"></div>
-      </div>
-      <div class="inline">
-        <div class="field"><label>Schritte heute</label><input id="hSteps" type="number" inputmode="numeric" step="1"></div>
-        <div class="field"><label>Trainingsminuten heute</label><input id="hExercise" type="number" inputmode="decimal" step="0.1"></div>
-      </div>
-      <button class="primary" id="saveHealthManual">Health-Werte für heute speichern</button>
-      <button class="secondary" id="showHealthUrl">Beispiel-Import-Link anzeigen</button>
-    </div>
-    <div id="healthUrlBox" class="selected-food hidden" style="margin-top:10px;word-break:break-all"></div>
-    <p id="healthDiagnostics" class="muted small" style="margin:12px 2px 0"></p>
-  </div>
 
-  <div class="card">
-    <h2>Web-Import</h2>
-    <p class="muted small">Für den automatischen Import von FDDB und anderen Produktseiten braucht die statische GitHub-Seite einen kleinen Serverless-Proxy. Ohne URL funktionieren Barcode, Open Food Facts, Foto und manuelle Eingabe weiterhin.</p>
-    <div class="field"><label>Web-Import API URL (optional)</label><input id="sWebImportApi" type="url" inputmode="url" placeholder="https://…workers.dev"></div>
-    <div style="height:10px"></div>
-    <button class="secondary" id="saveWebImportApi">Web-Import URL speichern</button>
-  </div>
 
-  <div class="card">
-    <h2>Daten & Backup</h2>
-    <p class="muted">Die Einträge werden automatisch in Chrome auf diesem iPhone gespeichert. Export ist dein zusätzliches Backup.</p>
-    <div class="form-grid">
-      <button class="secondary" id="exportData">Backup exportieren</button>
-      <label class="secondary" for="importFile" style="display:flex;align-items:center;justify-content:center">Backup importieren</label>
-      <input id="importFile" type="file" accept=".json,application/json" style="display:none">
-      <button class="danger" id="resetData">Alle lokalen Daten löschen</button>
-    </div>
-  </div>
+
+
+
+<div class="inline">
+<div class="field"><label>Menge</label><input id="rAmount" inputmode="decimal" min="0" placeholder="200" step="1" type="number"/></div>
+<div class="field"><label>Einheit</label><input id="rUnit" readonly=""/></div>
+</div>
+<div class="piece-hint" id="rSelectedInfo"></div>
+<div style="height:8px"></div><button class="secondary" id="rAddIngredient" type="button">Zutat hinzufügen</button>
+<div class="subtle-title">Zutaten</div><div id="rIngredientList"></div>
+<div class="recipe-summary" id="rSummary">Noch keine Zutaten.</div>
+<div class="inline">
+<div class="field"><label>1 Portion wiegt (optional)</label><input id="rPortionWeight" inputmode="decimal" placeholder="z. B. 420" step="1" type="number"/></div>
+<div class="field"><label>Bezeichnung</label><input id="rPortionLabel" placeholder="Portion" value="Portion"/></div>
+</div>
+<div style="height:10px"></div><button class="primary" id="rSaveRecipe" type="button">Gericht speichern</button>
+</div><div class="card">
+<div class="section-title">Gespeicherte Gerichte</div>
+<div id="recipesList"></div>
+</div></section>
+
+<section class="view" id="more"><div class="card">
+<h2>Körper &amp; Gewicht</h2>
+<p class="muted">Messwerte und Verlauf. Auf dem Startdashboard bleibt die kompakte Gewichtskachel mit Diagramm.</p>
+</div><div class="card">
+<h2>Körperdaten eintragen</h2>
+<div class="form-grid two">
+<div class="field"><label>Datum</label><input id="wDate" type="date"/></div>
+<div class="field"><label>Gewicht kg</label><input id="wValue" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Körperfett % <span class="muted">(optional)</span></label><input id="wBodyFat" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Fettfreie Masse kg <span class="muted">(optional)</span></label><input id="wLeanMass" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>BMI <span class="muted">(optional)</span></label><input id="wBmi" inputmode="decimal" step="0.1" type="number"/></div>
+</div>
+<div style="height:12px"></div>
+<button class="primary" id="addWeight">Körperdaten speichern</button>
+<div class="coverage">Vorbereitet für Eufy/Apple Health: sobald die Waage ihre Werte in Health schreibt, können Gewicht, Körperfett, fettfreie Masse und BMI automatisch übernommen werden.</div>
+</div><div class="card"><div class="section-title">Verlauf</div><div id="weightList"></div></div>
+<div class="card">
+<h2>Einstellungen</h2>
+<div class="form-grid two">
+<div class="field"><label>Alter</label><input id="sAge" inputmode="numeric" type="number"/></div>
+<div class="field"><label>Geschlecht</label><select id="sSex"><option>Mann</option><option>Frau</option></select></div>
+<div class="field"><label>Größe cm</label><input id="sHeight" inputmode="numeric" type="number"/></div>
+<div class="field"><label>Startgewicht kg</label><input id="sStartWeight" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Zielgewicht kg</label><input id="sTargetWeight" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Kalorienziel / Tag</label><input id="sTargetKcal" inputmode="numeric" type="number"/></div>
+</div>
+<div style="height:12px"></div>
+<button class="primary" id="saveSettings">Einstellungen speichern</button>
+<p class="muted small" id="needs"></p>
+</div>
+<div class="card">
+<h2>Ernährungsprofil</h2>
+<p class="muted">Diese Angaben werden nur lokal gespeichert und bei Ernährungshinweisen berücksichtigt.</p>
+<div class="toggle-grid">
+<label class="toggle-row"><input id="prefGluten" type="checkbox"/><span>Gluten/Weizen meiden</span></label>
+<label class="toggle-row"><input id="prefLactose" type="checkbox"/><span>Laktose meiden</span></label>
+<label class="toggle-row"><input id="prefNuts" type="checkbox"/><span>Nüsse meiden</span></label>
+<label class="toggle-row"><input id="prefVegetarian" type="checkbox"/><span>Vegetarisch</span></label>
+<label class="toggle-row"><input id="prefVegan" type="checkbox"/><span>Vegan</span></label>
+</div>
+<div class="field" style="margin-top:10px"><label>Weitere Einschränkungen / Hinweise</label><textarea id="prefCustom" placeholder="z. B. bestimmte Lebensmittel meiden" rows="3"></textarea></div>
+<div style="height:10px"></div><button class="primary" id="saveDietPrefs">Ernährungsprofil speichern</button>
+</div>
+<div class="card">
+<h2>Apple Health</h2>
+<p class="muted">Ein iPhone-Kurzbefehl liest Health-Daten und übergibt sie an diese Seite. Die Werte werden nur lokal in deinem Browser gespeichert.</p>
+<div class="form-grid">
+<div class="inline">
+<div class="field"><label>Aktive Kalorien heute</label><input id="hActive" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Ruheenergie heute</label><input id="hResting" inputmode="decimal" step="0.1" type="number"/></div>
+</div>
+<div class="inline">
+<div class="field"><label>Schritte heute</label><input id="hSteps" inputmode="numeric" step="1" type="number"/></div>
+<div class="field"><label>Trainingsminuten heute</label><input id="hExercise" inputmode="decimal" step="0.1" type="number"/></div>
+</div>
+<button class="primary" id="saveHealthManual">Health-Werte für heute speichern</button>
+<button class="secondary" id="showHealthUrl">Beispiel-Import-Link anzeigen</button>
+</div>
+<div class="selected-food hidden" id="healthUrlBox" style="margin-top:10px;word-break:break-all"></div>
+<p class="muted small" id="healthDiagnostics" style="margin:12px 2px 0"></p>
+</div>
+<div class="card">
+<h2>Web-Import</h2>
+<p class="muted small">Für den automatischen Import von FDDB und anderen Produktseiten braucht die statische GitHub-Seite einen kleinen Serverless-Proxy. Ohne URL funktionieren Barcode, Open Food Facts, Foto und manuelle Eingabe weiterhin.</p>
+<div class="field"><label>Web-Import API URL (optional)</label><input id="sWebImportApi" inputmode="url" placeholder="https://…workers.dev" type="url"/></div>
+<div style="height:10px"></div>
+<button class="secondary" id="saveWebImportApi">Web-Import URL speichern</button>
+</div>
+<div class="card">
+<h2>Daten &amp; Backup</h2>
+<p class="muted">Die Einträge werden automatisch in Chrome auf diesem iPhone gespeichert. Export ist dein zusätzliches Backup.</p>
+<div class="form-grid">
+<button class="secondary" id="exportData">Backup exportieren</button>
+<label class="secondary" for="importFile" style="display:flex;align-items:center;justify-content:center">Backup importieren</label>
+<input accept=".json,application/json" id="importFile" style="display:none" type="file"/>
+<button class="danger" id="resetData">Alle lokalen Daten löschen</button>
+</div>
+</div>
 </section>
 </main>
-
-<div id="barcodeModal" class="scan-modal hidden">
-  <div class="modal-sheet">
-    <div class="modal-head"><h3>Barcode scannen</h3><button type="button" id="closeBarcodeModal" class="icon-btn">×</button></div>
-    <div id="barcodeReader"></div>
-    <div id="barcodeStatus" class="scan-status">Kamera wird vorbereitet …</div>
-  </div>
+<div class="scan-modal hidden" id="barcodeModal">
+<div class="modal-sheet">
+<div class="modal-head"><h3>Barcode scannen</h3><button class="icon-btn" id="closeBarcodeModal" type="button">×</button></div>
+<div id="barcodeReader"></div>
+<div class="scan-status" id="barcodeStatus">Kamera wird vorbereitet …</div>
 </div>
-
-<div id="nutritionReviewModal" class="review-modal hidden">
-  <div class="modal-sheet">
-    <div class="modal-head"><h3>Nährwerte prüfen</h3><button type="button" id="closeNutritionReview" class="icon-btn">×</button></div>
-    <p class="muted small">Die Erkennung ist nur ein Vorschlag. Bitte kurz mit der Packung bzw. Produktseite vergleichen.</p>
-    <div class="review-grid">
-      <div class="field"><label>Name</label><input id="rvName"></div>
-      <div class="field"><label>kcal / 100</label><input id="rvKcal" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Eiweiß g</label><input id="rvProtein" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Kohlenhydrate g</label><input id="rvCarbs" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Fett g</label><input id="rvFat" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Ballaststoffe g</label><input id="rvFiber" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Zucker g</label><input id="rvSugar" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Salz g</label><input id="rvSalt" type="number" inputmode="decimal" step="0.01"></div>
-      <div class="field"><label>gesättigte Fettsäuren g</label><input id="rvSatFat" type="number" inputmode="decimal" step="0.1"></div>
-      <div class="field"><label>Einheit</label><select id="rvUnit"><option value="g">g</option><option value="ml">ml</option></select></div>
-    </div>
-    <div id="reviewSource" class="source-badge">Quelle</div>
-    <div class="review-actions">
-      <button type="button" class="secondary" id="reviewCancelBtn">Abbrechen</button>
-      <button type="button" class="primary" id="reviewApplyBtn">Übernehmen</button>
-    </div>
-  </div>
 </div>
-
-
+<div class="review-modal hidden" id="nutritionReviewModal">
+<div class="modal-sheet">
+<div class="modal-head"><h3>Nährwerte prüfen</h3><button class="icon-btn" id="closeNutritionReview" type="button">×</button></div>
+<p class="muted small">Die Erkennung ist nur ein Vorschlag. Bitte kurz mit der Packung bzw. Produktseite vergleichen.</p>
+<div class="review-grid">
+<div class="field"><label>Name</label><input id="rvName"/></div>
+<div class="field"><label>kcal / 100</label><input id="rvKcal" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Eiweiß g</label><input id="rvProtein" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Kohlenhydrate g</label><input id="rvCarbs" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Fett g</label><input id="rvFat" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Ballaststoffe g</label><input id="rvFiber" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Zucker g</label><input id="rvSugar" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Salz g</label><input id="rvSalt" inputmode="decimal" step="0.01" type="number"/></div>
+<div class="field"><label>gesättigte Fettsäuren g</label><input id="rvSatFat" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Einheit</label><select id="rvUnit"><option value="g">g</option><option value="ml">ml</option></select></div>
+</div>
+<div class="source-badge" id="reviewSource">Quelle</div>
+<div class="review-actions">
+<button class="secondary" id="reviewCancelBtn" type="button">Abbrechen</button>
+<button class="primary" id="reviewApplyBtn" type="button">Übernehmen</button>
+</div>
+</div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
@@ -839,6 +832,17 @@ const importFile=document.getElementById("importFile");
 const resetData=document.getElementById("resetData");
 const healthImportStatus=document.getElementById("healthImportStatus");
 const healthDiagnostics=document.getElementById("healthDiagnostics");
+const librarySearch=document.getElementById("librarySearch");
+const libraryClearSearch=document.getElementById("libraryClearSearch");
+const librarySearchStatus=document.getElementById("librarySearchStatus");
+const libraryResults=document.getElementById("libraryResults");
+const libraryBarcodeScanBtn=document.getElementById("libraryBarcodeScanBtn");
+const libraryPhotoBtn=document.getElementById("libraryPhotoBtn");
+const libraryPhotoInput=document.getElementById("libraryPhotoInput");
+const libraryPhotoStatus=document.getElementById("libraryPhotoStatus");
+const libraryImportUrl=document.getElementById("libraryImportUrl");
+const libraryImportUrlBtn=document.getElementById("libraryImportUrlBtn");
+const goToFoodsFromRecipes=document.getElementById("goToFoodsFromRecipes");
 const sWebImportApi=document.getElementById("sWebImportApi");
 const saveWebImportApi=document.getElementById("saveWebImportApi");
 const barcodeModal=document.getElementById("barcodeModal");
@@ -1005,6 +1009,11 @@ function snapshotNutrition(food){
 
 headerDate.textContent=new Date().toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"});
 
+function switchToView(viewId){
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===viewId));
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===viewId));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 document.querySelectorAll(".nav-btn").forEach(btn=>btn.addEventListener("click",()=>{
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
@@ -1079,7 +1088,7 @@ function runDataMigration(){
   if(!Array.isArray(state.recipes))state.recipes=[];
   if(!state.settings.dietPrefs || typeof state.settings.dietPrefs!=="object")state.settings.dietPrefs={gluten:false,lactose:false,nuts:false,vegetarian:false,vegan:false,custom:""};
   if(typeof state.settings.webImportApi!=="string")state.settings.webImportApi="";
-  state.version=15;
+  state.version=16;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
 }
 runDataMigration();
@@ -1285,6 +1294,8 @@ reviewApplyBtn.addEventListener("click",()=>{
     cacheExternalFood(food);selectFood(food);diaryOcrStatus.textContent="Geprüfte Nährwerte übernommen und lokal gespeichert.";
   }else if(reviewContext?.type==="recipe"){
     cacheExternalFood(food);recipeSelectedFood=food;rSearch.value=food.name;rUnit.value=food.unit;rSelectedInfo.textContent=`${fmt(food.kcal,1)} kcal/100 ${food.unit} · geprüft`;rOcrStatus.textContent="Geprüfte Zutat übernommen und lokal gespeichert.";
+  }else if(reviewContext?.type==="library"){
+    cacheExternalFood(food);librarySearch.value=food.name;libraryPhotoStatus.textContent="Geprüft und im Tracker gespeichert.";renderLibrarySearch();
   }else if(reviewContext?.type==="food"){
     fName.value=food.name;fKcal.value=food.kcal;fUnit.value=food.unit;
     fProtein.value=food.nutrition.protein??"";fCarbs.value=food.nutrition.carbs??"";fFat.value=food.nutrition.fat??"";
@@ -1343,11 +1354,13 @@ async function startBarcodeScanner(context){
           await stopBarcodeScanner();
           if(context==="diary"){selectFood(food);onlineSearchStatus.textContent="Barcode erkannt · Produkt lokal gespeichert."}
           else if(context==="recipe"){recipeSelectedFood=food;rSearch.value=food.name;rUnit.value=food.unit||"g";rSelectedInfo.textContent=`${fmt(food.kcal,1)} kcal/100 ${food.unit} · Barcode`;rOnlineStatus.textContent="Barcode-Produkt übernommen."}
+          else if(context==="library"){librarySearch.value=food.name;librarySearchStatus.textContent="Barcode erkannt · Produkt gespeichert.";renderLibrarySearch()}
           else if(context==="food"){openNutritionReview(food,{type:"food",barcode:String(code)},"Barcode · Open Food Facts")}
         }else{
           barcodeStatus.textContent="Barcode erkannt, aber kein Datenbanktreffer. Code wurde ins Suchfeld übernommen; nutze Websuche oder Nährwertfoto.";
           if(context==="diary")dSearch.value=code;
           else if(context==="recipe")rSearch.value=code;
+          else if(context==="library"){librarySearch.value=code;renderLibrarySearch()}
           setTimeout(stopBarcodeScanner,1600);
         }
       }catch(err){
@@ -1474,6 +1487,82 @@ diaryPhotoInput.addEventListener("change",async e=>{
   }catch(err){diaryOcrStatus.textContent="Foto konnte nicht ausgewertet werden: "+err.message}
   finally{e.target.value=""}
 });
+
+let librarySearchSeq=0,libraryOnlineTimer=null;
+function libraryFoodMeta(f){
+  const n=nutritionPer100(f)||{};
+  const b=[`${fmt(f.kcal,0)} kcal/100 ${esc(f.unit||"g")}`];
+  if(n.protein!=null)b.push(`EW ${fmt(n.protein,1)} g`);
+  if(n.carbs!=null)b.push(`KH ${fmt(n.carbs,1)} g`);
+  if(n.fat!=null)b.push(`F ${fmt(n.fat,1)} g`);
+  return b.join(" · ");
+}
+function renderLibraryResults(foods,onlineStart=9999){
+  if(!foods.length){libraryResults.innerHTML='<div class="list-empty">Keine Treffer.</div>';return}
+  libraryResults.innerHTML=foods.map((f,i)=>`
+    <div class="library-result">
+      <div class="library-result-name">${esc(f.name)}</div>
+      <div class="suggestion-meta">${libraryFoodMeta(f)}</div>
+      <div class="library-result-source">${i>=onlineStart?"Online · Open Food Facts":(f.recipe?"Gericht":(f.source||"Im Tracker"))}</div>
+      <div class="library-actions">
+        <button type="button" class="mini-btn" data-lib-use="${i}">${i>=onlineStart?"Speichern & verwenden":"Im Tagebuch verwenden"}</button>
+        <button type="button" class="mini-btn" data-lib-fav="${i}">${isFavorite(f)?"★ Favorit":"☆ Favorit"}</button>
+      </div>
+    </div>`).join("");
+  [...libraryResults.querySelectorAll("[data-lib-use]")].forEach(btn=>btn.addEventListener("click",()=>{
+    const f=foods[Number(btn.dataset.libUse)];
+    cacheExternalFood(f);selectFood(f);switchToView("diary");
+  }));
+  [...libraryResults.querySelectorAll("[data-lib-fav]")].forEach(btn=>btn.addEventListener("click",()=>{
+    const f=foods[Number(btn.dataset.libFav)];cacheExternalFood(f);toggleFavorite(f);renderLibrarySearch();
+  }));
+}
+async function renderLibrarySearch(){
+  const q=librarySearch.value.trim();
+  libraryClearSearch.classList.toggle("hidden",!q);
+  if(!q){libraryResults.innerHTML="";librarySearchStatus.textContent="Lokale Treffer erscheinen sofort. Online wird automatisch ergänzt.";return}
+  const seq=++librarySearchSeq;
+  const local=searchFoods(q).slice(0,12);
+  renderLibraryResults(local);
+  librarySearchStatus.textContent=local.length?`${local.length} lokale Treffer · Online wird ergänzt …`:"Keine lokalen Treffer · Online wird gesucht …";
+  clearTimeout(libraryOnlineTimer);
+  libraryOnlineTimer=setTimeout(async()=>{
+    try{
+      const online=await fetchOpenFoodFacts(q);
+      if(seq!==librarySearchSeq)return;
+      const keys=new Set(local.map(foodIdentity));
+      const fresh=online.filter(f=>!keys.has(foodIdentity(f))).slice(0,8);
+      renderLibraryResults([...local,...fresh],local.length);
+      librarySearchStatus.textContent=fresh.length?`${local.length} lokal · ${fresh.length} online`:(local.length?`${local.length} lokale Treffer`:"Keine Treffer. Barcode, Foto oder Produktlink verwenden.");
+    }catch(e){
+      if(seq!==librarySearchSeq)return;
+      librarySearchStatus.textContent=local.length?`${local.length} lokale Treffer · Online gerade nicht erreichbar`:"Online gerade nicht erreichbar. Barcode, Foto oder Produktlink verwenden.";
+    }
+  },500);
+}
+librarySearch.addEventListener("input",renderLibrarySearch);
+libraryClearSearch.addEventListener("click",()=>{librarySearch.value="";renderLibrarySearch();librarySearch.focus()});
+libraryBarcodeScanBtn.addEventListener("click",()=>startBarcodeScanner("library"));
+libraryPhotoBtn.addEventListener("click",()=>libraryPhotoInput.click());
+libraryPhotoInput.addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{
+    const {parsed}=await ocrNutritionImage(file,libraryPhotoStatus);
+    openNutritionReview(ocrFoodFromParsed(parsed,librarySearch.value.trim()||"Neues Lebensmittel"),{type:"library"},"Nährwertfoto · OCR");
+  }catch(err){libraryPhotoStatus.textContent="Foto konnte nicht ausgewertet werden: "+err.message}
+  finally{e.target.value=""}
+});
+libraryImportUrlBtn.addEventListener("click",async()=>{
+  const url=libraryImportUrl.value.trim();
+  if(!/^https?:\/\//i.test(url)){libraryPhotoStatus.textContent="Bitte vollständige Produkt-URL einfügen.";return}
+  libraryPhotoStatus.textContent="Produktseite wird eingelesen …";
+  try{
+    const food=await importProductUrl(url);
+    openNutritionReview(food,{type:"library"},"Web-Import · "+(food.source||new URL(url).hostname));
+  }catch(err){libraryPhotoStatus.textContent=err.message}
+});
+goToFoodsFromRecipes.addEventListener("click",()=>switchToView("foods"));
+
 function clearFoodEntry(){
   selectedFood=null;
   dSearch.value="";
