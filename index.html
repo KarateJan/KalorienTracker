@@ -282,6 +282,14 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 .favorite-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}.favorite-strip::-webkit-scrollbar{display:none}.favorite-chip{flex:0 0 auto;border:1px solid rgba(101,230,187,.25);background:rgba(32,211,154,.08);color:#dffdf3;border-radius:999px;padding:9px 12px;font-weight:750;font-size:13px}.favorite-btn{border:1px solid #314158;background:#15243a;color:#ffd76a;border-radius:12px;padding:9px 11px;font-weight:800}.favorite-btn.active{background:rgba(255,215,106,.12);border-color:rgba(255,215,106,.4)}
 .recipe-search-wrap{position:relative}.recipe-suggestions{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;background:#101a2a;border:1px solid #314158;border-radius:14px;overflow:hidden;box-shadow:0 15px 35px rgba(0,0,0,.35);max-height:260px;overflow-y:auto}.recipe-builder-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:11px;background:rgba(7,17,31,.45);margin-bottom:8px}.recipe-summary{padding:14px;border-radius:16px;background:rgba(32,211,154,.07);border:1px solid rgba(32,211,154,.18);margin:10px 0}.recipe-actions{display:flex;gap:8px;flex-wrap:wrap}.recipe-actions .mini-btn{flex:1}.subtle-title{font-size:13px;font-weight:800;color:#c9d8ea;margin:12px 0 8px}
 
+
+/* v14 robust search + nutrition photo */
+.tool-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.tool-row .secondary{min-height:44px}
+.web-fallback{margin-top:8px;padding:10px 12px;border:1px dashed rgba(143,162,189,.28);border-radius:14px;background:rgba(143,162,189,.05)}
+.ocr-status{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.4}
+.ocr-preview{margin-top:8px;padding:12px;border-radius:14px;background:rgba(32,211,154,.07);border:1px solid rgba(32,211,154,.18);font-size:13px}
+
 </style>
 </head>
 <body>
@@ -432,11 +440,18 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
       <div id="selectedFoodInfo" class="selected-food hidden"></div>
       <button type="button" id="favoriteSelectedFood" class="favorite-btn hidden" style="margin-top:8px">☆ Favorit</button>
       <div class="piece-hint">Lokale Treffer werden nach Namenspassung sortiert. Häufigkeit entscheidet nur bei gleich guten Treffern.</div>
-      <div class="online-row">
-        <button type="button" class="secondary" id="onlineSearchBtn">Im Internet suchen</button>
+      <div class="tool-row">
+        <button type="button" class="secondary" id="onlineSearchBtn">Open Food Facts</button>
+        <button type="button" class="secondary" id="webSearchBtn">Web weitersuchen</button>
       </div>
+      <div class="tool-row">
+        <button type="button" class="secondary" id="diaryPhotoBtn">📷 Nährwerte fotografieren</button>
+        <button type="button" class="secondary" id="diaryBarcodeHintBtn">Barcode / Name suchen</button>
+      </div>
+      <input id="diaryPhotoInput" type="file" accept="image/*" capture="environment" style="display:none">
       <div id="onlineSearchStatus" class="piece-hint"></div>
       <div id="onlineResults" class="online-results hidden"></div>
+      <div id="diaryOcrStatus" class="ocr-status"></div>
     </div>
     <div style="height:10px"></div>
     <div class="field">
@@ -482,6 +497,18 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
       <label>Zutat suchen</label><input id="rSearch" type="search" autocomplete="off" placeholder="z. B. Rinderhack, Tomaten …">
       <div id="rSuggestions" class="recipe-suggestions hidden"></div>
     </div>
+    <div class="tool-row">
+      <button type="button" class="secondary" id="rOnlineSearchBtn">Online suchen</button>
+      <button type="button" class="secondary" id="rWebSearchBtn">Web weitersuchen</button>
+    </div>
+    <div class="tool-row">
+      <button type="button" class="secondary" id="rPhotoBtn">📷 Nährwerte fotografieren</button>
+      <button type="button" class="secondary" id="rClearOnlineBtn">Online-Treffer leeren</button>
+    </div>
+    <input id="rPhotoInput" type="file" accept="image/*" capture="environment" style="display:none">
+    <div id="rOnlineStatus" class="ocr-status"></div>
+    <div id="rOnlineResults" class="online-results hidden"></div>
+    <div id="rOcrStatus" class="ocr-status"></div>
     <div style="height:8px"></div>
     <div class="inline">
       <div class="field"><label>Menge</label><input id="rAmount" type="number" inputmode="decimal" min="0" step="1" placeholder="200"></div>
@@ -505,7 +532,11 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 
   <div class="card">
     <h2>Eigenes Lebensmittel</h2>
+    <p class="muted small">Du kannst die Werte eintippen oder die Nährwertdeklaration fotografieren.</p>
     <div class="form-grid">
+      <button type="button" class="secondary" id="fPhotoBtn">📷 Nährwertdeklaration fotografieren</button>
+      <input id="fPhotoInput" type="file" accept="image/*" capture="environment" style="display:none">
+      <div id="fOcrStatus" class="ocr-status"></div>
       <div class="field"><label>Lebensmittel</label><input id="fName" placeholder="z.B. Proteinpudding"></div>
       <div class="inline">
         <div class="field"><label>kcal / 100</label><input id="fKcal" type="number" inputmode="decimal" step="0.1"></div>
@@ -619,6 +650,7 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 </section>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 const DEFAULT_STATE = {"version": 10, "settings": {"name": "", "age": 34, "sex": "Mann", "heightCm": 181, "startWeightKg": 114, "targetWeightKg": 95, "dailyCalorieTarget": 2200}, "foods": [{"category": "Gemüse", "name": "Möhre/Karotte roh", "kcal": 41, "portion": 100, "unit": "g", "pieceWeight": 100, "pieceLabel": "Möhre"}, {"category": "Gemüse", "name": "Gurke", "kcal": 15, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Tomate", "kcal": 18, "portion": 120, "unit": "g"}, {"category": "Gemüse", "name": "Paprika rot", "kcal": 31, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Brokkoli", "kcal": 34, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Blumenkohl", "kcal": 25, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Zucchini", "kcal": 17, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Champignons", "kcal": 22, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Zwiebel", "kcal": 40, "portion": 80, "unit": "g"}, {"category": "Gemüse", "name": "Spinat", "kcal": 23, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Apfel", "kcal": 52, "portion": 180, "unit": "g", "pieceWeight": 180, "pieceLabel": "Apfel"}, {"category": "Obst", "name": "Banane", "kcal": 89, "portion": 120, "unit": "g", "pieceWeight": 120, "pieceLabel": "Banane"}, {"category": "Obst", "name": "Orange", "kcal": 47, "portion": 180, "unit": "g", "pieceWeight": 180, "pieceLabel": "Orange"}, {"category": "Obst", "name": "Mandarine", "kcal": 53, "portion": 100, "unit": "g", "pieceWeight": 100, "pieceLabel": "Mandarine"}, {"category": "Obst", "name": "Birne", "kcal": 57, "portion": 180, "unit": "g", "pieceWeight": 180, "pieceLabel": "Birne"}, {"category": "Obst", "name": "Erdbeeren", "kcal": 32, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Heidelbeeren", "kcal": 57, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Weintrauben", "kcal": 69, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Wassermelone", "kcal": 30, "portion": 250, "unit": "g"}, {"category": "Obst", "name": "Avocado", "kcal": 160, "portion": 100, "unit": "g", "pieceWeight": 200, "pieceLabel": "Avocado"}, {"category": "Beilagen & Getreide", "name": "Kartoffeln gekocht", "kcal": 87, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Kartoffelpüree", "kcal": 105, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Pommes frittiert", "kcal": 312, "portion": 150, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Reis weiß trocken", "kcal": 360, "portion": 75, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Reis weiß gekocht", "kcal": 130, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Basmati Reis gekocht", "kcal": 130, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Haferflocken", "kcal": 372, "portion": 50, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Müsli", "kcal": 370, "portion": 60, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Toastbrot", "kcal": 265, "portion": 50, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Vollkornbrot", "kcal": 230, "portion": 60, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Brötchen", "kcal": 270, "portion": 60, "unit": "g", "pieceWeight": 60, "pieceLabel": "Brötchen"}, {"category": "Brot & Backwaren", "name": "Vollkornbrötchen", "kcal": 250, "portion": 70, "unit": "g", "pieceWeight": 70, "pieceLabel": "Brötchen"}, {"category": "Brot & Backwaren", "name": "Croissant", "kcal": 406, "portion": 70, "unit": "g", "pieceWeight": 70, "pieceLabel": "Croissant"}, {"category": "Brot & Backwaren", "name": "Glutenfreies Brot", "kcal": 240, "portion": 60, "unit": "g"}, {"category": "Nudeln", "name": "Nudeln trocken", "kcal": 350, "portion": 100, "unit": "g"}, {"category": "Nudeln", "name": "Nudeln gekocht", "kcal": 150, "portion": 200, "unit": "g"}, {"category": "Nudeln", "name": "Spaghetti gekocht", "kcal": 158, "portion": 200, "unit": "g"}, {"category": "Nudeln", "name": "Gnocchi", "kcal": 160, "portion": 250, "unit": "g"}, {"category": "Nudeln", "name": "Tortellini Käse", "kcal": 260, "portion": 250, "unit": "g"}, {"category": "Nudeln", "name": "Maultaschen", "kcal": 220, "portion": 250, "unit": "g"}, {"category": "Milchprodukte", "name": "Vollmilch 3,5%", "kcal": 64, "portion": 250, "unit": "ml"}, {"category": "Milchprodukte", "name": "Milch 1,5%", "kcal": 47, "portion": 250, "unit": "ml"}, {"category": "Milchprodukte", "name": "Skyr natur", "kcal": 63, "portion": 200, "unit": "g"}, {"category": "Milchprodukte", "name": "Magerquark", "kcal": 67, "portion": 250, "unit": "g"}, {"category": "Milchprodukte", "name": "Naturjoghurt 3,5%", "kcal": 61, "portion": 150, "unit": "g"}, {"category": "Milchprodukte", "name": "Butter", "kcal": 717, "portion": 10, "unit": "g"}, {"category": "Käse", "name": "Gouda", "kcal": 356, "portion": 30, "unit": "g"}, {"category": "Käse", "name": "Mozzarella", "kcal": 250, "portion": 125, "unit": "g"}, {"category": "Käse", "name": "Feta", "kcal": 265, "portion": 50, "unit": "g"}, {"category": "Käse", "name": "Parmesan", "kcal": 431, "portion": 20, "unit": "g"}, {"category": "Fleisch", "name": "Hähnchenbrust roh", "kcal": 120, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Hähnchenbrust gebraten", "kcal": 165, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Rinderhack 20%", "kcal": 250, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Rinderhack mager", "kcal": 170, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Gemischtes Hack", "kcal": 260, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Rindersteak mager", "kcal": 200, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Schweineschnitzel paniert", "kcal": 280, "portion": 220, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Bockwurst", "kcal": 280, "portion": 100, "unit": "g", "pieceWeight": 100, "pieceLabel": "Stück"}, {"category": "Wurst & Aufschnitt", "name": "Bratwurst", "kcal": 300, "portion": 120, "unit": "g", "pieceWeight": 120, "pieceLabel": "Stück"}, {"category": "Wurst & Aufschnitt", "name": "Salami", "kcal": 420, "portion": 30, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Kochschinken", "kcal": 120, "portion": 50, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Lachs roh", "kcal": 208, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Lachs gebraten", "kcal": 230, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Thunfisch Dose eigener Saft", "kcal": 116, "portion": 150, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Garnelen", "kcal": 99, "portion": 200, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Ei", "kcal": 143, "portion": 60, "unit": "g", "pieceWeight": 60, "pieceLabel": "Ei"}, {"category": "Eier & Vegetarisch", "name": "Rührei", "kcal": 150, "portion": 120, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Tofu natur", "kcal": 144, "portion": 150, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Falafel", "kcal": 330, "portion": 150, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Linsen gekocht", "kcal": 116, "portion": 200, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Kichererbsen gekocht", "kcal": 164, "portion": 200, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Kidneybohnen Dose", "kcal": 127, "portion": 150, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Mandeln", "kcal": 579, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Walnüsse", "kcal": 654, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Cashews", "kcal": 553, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Erdnüsse", "kcal": 567, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Erdnussbutter", "kcal": 588, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Vollmilchschokolade", "kcal": 535, "portion": 25, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Zartbitterschokolade", "kcal": 600, "portion": 25, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Gummibärchen", "kcal": 343, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Nutella/Nuss-Nougat-Creme", "kcal": 539, "portion": 20, "unit": "g"}, {"category": "Snacks", "name": "Kartoffelchips", "kcal": 536, "portion": 100, "unit": "g"}, {"category": "Snacks", "name": "Nachos", "kcal": 500, "portion": 100, "unit": "g"}, {"category": "Snacks", "name": "Salzstangen", "kcal": 380, "portion": 50, "unit": "g"}, {"category": "Snacks", "name": "Proteinriegel", "kcal": 360, "portion": 60, "unit": "g", "pieceWeight": 60, "pieceLabel": "Riegel"}, {"category": "Eis", "name": "Vanilleeis", "kcal": 207, "portion": 100, "unit": "g"}, {"category": "Eis", "name": "Schokoladeneis", "kcal": 216, "portion": 100, "unit": "g"}, {"category": "Eis", "name": "Wassereis", "kcal": 90, "portion": 70, "unit": "g", "pieceWeight": 70, "pieceLabel": "Stück"}, {"category": "Saucen & Fette", "name": "Ketchup", "kcal": 112, "portion": 30, "unit": "g"}, {"category": "Saucen & Fette", "name": "Mayonnaise", "kcal": 680, "portion": 20, "unit": "g"}, {"category": "Saucen & Fette", "name": "Hollandaise", "kcal": 500, "portion": 50, "unit": "g"}, {"category": "Saucen & Fette", "name": "Teriyaki Sauce", "kcal": 90, "portion": 30, "unit": "g"}, {"category": "Saucen & Fette", "name": "Olivenöl", "kcal": 884, "portion": 10, "unit": "g"}, {"category": "Getränke", "name": "Wasser", "kcal": 0, "portion": 500, "unit": "ml"}, {"category": "Getränke", "name": "Cola", "kcal": 42, "portion": 330, "unit": "ml"}, {"category": "Getränke", "name": "Cola Zero", "kcal": 0.3, "portion": 330, "unit": "ml"}, {"category": "Getränke", "name": "Apfelsaft", "kcal": 46, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Kaffee schwarz", "kcal": 2, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Bier Pils", "kcal": 43, "portion": 500, "unit": "ml"}, {"category": "Gerichte & Fast Food", "name": "Pizza Margherita", "kcal": 250, "portion": 350, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pizza Salami", "kcal": 280, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Döner Kebab", "kcal": 215, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Currywurst mit Pommes", "kcal": 250, "portion": 550, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Hamburger", "kcal": 250, "portion": 180, "unit": "g", "pieceWeight": 180, "pieceLabel": "Stück"}, {"category": "Gerichte & Fast Food", "name": "Cheeseburger", "kcal": 280, "portion": 200, "unit": "g", "pieceWeight": 200, "pieceLabel": "Stück"}, {"category": "Gerichte & Fast Food", "name": "Chicken Nuggets", "kcal": 295, "portion": 180, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Spaghetti Bolognese", "kcal": 140, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Lasagne Bolognese", "kcal": 170, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Chili con Carne", "kcal": 120, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Schnitzel mit Pommes", "kcal": 230, "portion": 600, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Maultaschen mit Ei", "kcal": 180, "portion": 400, "unit": "g"}, {"category": "Gemüse", "name": "Paprika gelb", "kcal": 27, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Paprika grün", "kcal": 20, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Aubergine", "kcal": 25, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Lauch", "kcal": 61, "portion": 100, "unit": "g"}, {"category": "Gemüse", "name": "Knollensellerie", "kcal": 42, "portion": 100, "unit": "g"}, {"category": "Gemüse", "name": "Kohlrabi", "kcal": 27, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Weißkohl", "kcal": 25, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Rotkohl roh", "kcal": 31, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Rosenkohl", "kcal": 43, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Grünkohl", "kcal": 49, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Grüne Bohnen", "kcal": 31, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Erbsen", "kcal": 81, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Mais Dose abgetropft", "kcal": 86, "portion": 100, "unit": "g"}, {"category": "Gemüse", "name": "Spargel weiß", "kcal": 20, "portion": 200, "unit": "g"}, {"category": "Gemüse", "name": "Spargel grün", "kcal": 20, "portion": 200, "unit": "g"}, {"category": "Gemüse", "name": "Rote Bete", "kcal": 43, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Radieschen", "kcal": 16, "portion": 100, "unit": "g"}, {"category": "Gemüse", "name": "Feldsalat", "kcal": 21, "portion": 100, "unit": "g"}, {"category": "Gemüse", "name": "Kopfsalat", "kcal": 15, "portion": 100, "unit": "g"}, {"category": "Gemüse", "name": "Eisbergsalat", "kcal": 14, "portion": 100, "unit": "g"}, {"category": "Gemüse", "name": "Rucola", "kcal": 25, "portion": 80, "unit": "g"}, {"category": "Gemüse", "name": "Chinakohl", "kcal": 16, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Hokkaido Kürbis", "kcal": 63, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Butternut Kürbis", "kcal": 45, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Fenchel", "kcal": 31, "portion": 150, "unit": "g"}, {"category": "Gemüse", "name": "Sauerkraut", "kcal": 19, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Kiwi", "kcal": 61, "portion": 80, "unit": "g", "pieceWeight": 80, "pieceLabel": "Kiwi"}, {"category": "Obst", "name": "Himbeeren", "kcal": 52, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Brombeeren", "kcal": 43, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Honigmelone", "kcal": 36, "portion": 200, "unit": "g"}, {"category": "Obst", "name": "Ananas", "kcal": 50, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Mango", "kcal": 60, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Pfirsich", "kcal": 39, "portion": 150, "unit": "g", "pieceWeight": 150, "pieceLabel": "Pfirsich"}, {"category": "Obst", "name": "Nektarine", "kcal": 44, "portion": 150, "unit": "g", "pieceWeight": 150, "pieceLabel": "Nektarine"}, {"category": "Obst", "name": "Pflaume", "kcal": 46, "portion": 100, "unit": "g", "pieceWeight": 50, "pieceLabel": "Pflaume"}, {"category": "Obst", "name": "Kirschen", "kcal": 63, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Granatapfel", "kcal": 83, "portion": 100, "unit": "g"}, {"category": "Obst", "name": "Grapefruit", "kcal": 42, "portion": 200, "unit": "g"}, {"category": "Obst", "name": "Datteln getrocknet", "kcal": 282, "portion": 30, "unit": "g"}, {"category": "Obst", "name": "Rosinen", "kcal": 299, "portion": 30, "unit": "g"}, {"category": "Obst", "name": "Aprikosen", "kcal": 48, "portion": 150, "unit": "g"}, {"category": "Obst", "name": "Apfelmus ungesüßt", "kcal": 68, "portion": 150, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Süßkartoffel", "kcal": 86, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Kroketten", "kcal": 200, "portion": 150, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Basmati Reis trocken", "kcal": 355, "portion": 75, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Vollkornreis trocken", "kcal": 370, "portion": 75, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Vollkornreis gekocht", "kcal": 123, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Couscous trocken", "kcal": 376, "portion": 75, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Couscous gekocht", "kcal": 112, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Bulgur trocken", "kcal": 342, "portion": 75, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Bulgur gekocht", "kcal": 83, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Quinoa trocken", "kcal": 368, "portion": 75, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Quinoa gekocht", "kcal": 120, "portion": 200, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Hirse trocken", "kcal": 378, "portion": 75, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Cornflakes", "kcal": 357, "portion": 40, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Granola", "kcal": 450, "portion": 50, "unit": "g"}, {"category": "Beilagen & Getreide", "name": "Buchweizen trocken", "kcal": 343, "portion": 75, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Weißbrot", "kcal": 265, "portion": 50, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Vollkorntoast", "kcal": 250, "portion": 50, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Roggenbrot", "kcal": 259, "portion": 60, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Mischbrot", "kcal": 240, "portion": 60, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Baguette", "kcal": 270, "portion": 100, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Ciabatta", "kcal": 271, "portion": 100, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Laugenbrötchen", "kcal": 280, "portion": 80, "unit": "g", "pieceWeight": 80, "pieceLabel": "Brötchen"}, {"category": "Brot & Backwaren", "name": "Laugenbrezel", "kcal": 310, "portion": 100, "unit": "g", "pieceWeight": 100, "pieceLabel": "Brezel"}, {"category": "Brot & Backwaren", "name": "Knäckebrot", "kcal": 350, "portion": 20, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Reiswaffeln", "kcal": 387, "portion": 20, "unit": "g", "pieceWeight": 7, "pieceLabel": "Stück"}, {"category": "Brot & Backwaren", "name": "Maiswaffeln", "kcal": 390, "portion": 20, "unit": "g", "pieceWeight": 7, "pieceLabel": "Stück"}, {"category": "Brot & Backwaren", "name": "Wrap", "kcal": 310, "portion": 65, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Pita", "kcal": 275, "portion": 80, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Tortilla Mais", "kcal": 218, "portion": 60, "unit": "g"}, {"category": "Brot & Backwaren", "name": "Glutenfreies Brötchen", "kcal": 260, "portion": 70, "unit": "g", "pieceWeight": 70, "pieceLabel": "Brötchen"}, {"category": "Brot & Backwaren", "name": "Bagel", "kcal": 275, "portion": 95, "unit": "g", "pieceWeight": 95, "pieceLabel": "Bagel"}, {"category": "Brot & Backwaren", "name": "Brioche", "kcal": 330, "portion": 60, "unit": "g"}, {"category": "Glutenfrei & Marken", "name": "REWE frei von Bio Knusperbrot Mais glutenfrei", "kcal": 378, "portion": 13, "unit": "g", "source": "REWE", "pieceWeight": 6.5, "pieceLabel": "Scheibe"}, {"category": "Glutenfrei & Marken", "name": "REWE frei von Landbrot glutenfrei 400g", "kcal": 252, "portion": 40, "unit": "g", "source": "REWE"}, {"category": "Glutenfrei & Marken", "name": "REWE frei von Landbrot glutenfrei 250g", "kcal": 246, "portion": 40, "unit": "g", "source": "REWE"}, {"category": "Glutenfrei & Marken", "name": "REWE frei von Saatenbrot glutenfrei", "kcal": 288, "portion": 40, "unit": "g", "source": "REWE"}, {"category": "Glutenfrei & Marken", "name": "REWE frei von Spaghetti glutenfrei trocken", "kcal": 358, "portion": 80, "unit": "g", "source": "REWE"}, {"category": "Glutenfrei & Marken", "name": "REWE frei von Penne glutenfrei trocken", "kcal": 355, "portion": 80, "unit": "g", "source": "REWE"}, {"category": "Glutenfrei & Marken", "name": "Schär Knusperbrot glutenfrei", "kcal": 380, "portion": 7, "unit": "g", "source": "REWE", "pieceWeight": 7, "pieceLabel": "Scheibe"}, {"category": "Glutenfrei & Marken", "name": "Alnavit Bio Buchweizen Knusperschnitten glutenfrei", "kcal": 362, "portion": 25, "unit": "g", "source": "REWE"}, {"category": "Glutenfrei & Marken", "name": "Biozentrale Bio Knusperbrot Erbse Linse", "kcal": 361, "portion": 25, "unit": "g", "source": "REWE"}, {"category": "Nudeln", "name": "Penne trocken", "kcal": 350, "portion": 100, "unit": "g"}, {"category": "Nudeln", "name": "Fusilli trocken", "kcal": 355, "portion": 100, "unit": "g"}, {"category": "Nudeln", "name": "Vollkornnudeln trocken", "kcal": 350, "portion": 100, "unit": "g"}, {"category": "Nudeln", "name": "Vollkornnudeln gekocht", "kcal": 145, "portion": 200, "unit": "g"}, {"category": "Nudeln", "name": "Glutenfreie Nudeln trocken", "kcal": 355, "portion": 100, "unit": "g"}, {"category": "Nudeln", "name": "Glutenfreie Nudeln gekocht", "kcal": 150, "portion": 200, "unit": "g"}, {"category": "Nudeln", "name": "Tortellini Fleisch", "kcal": 250, "portion": 250, "unit": "g"}, {"category": "Nudeln", "name": "Spätzle gekocht", "kcal": 160, "portion": 250, "unit": "g"}, {"category": "Nudeln", "name": "Schupfnudeln", "kcal": 190, "portion": 250, "unit": "g"}, {"category": "Milchprodukte", "name": "Magermilch", "kcal": 35, "portion": 250, "unit": "ml"}, {"category": "Milchprodukte", "name": "Haferdrink ungesüßt", "kcal": 40, "portion": 250, "unit": "ml"}, {"category": "Milchprodukte", "name": "Mandeldrink ungesüßt", "kcal": 15, "portion": 250, "unit": "ml"}, {"category": "Milchprodukte", "name": "Sojadrink ungesüßt", "kcal": 33, "portion": 250, "unit": "ml"}, {"category": "Milchprodukte", "name": "Joghurt 1,5%", "kcal": 45, "portion": 150, "unit": "g"}, {"category": "Milchprodukte", "name": "Griechischer Joghurt 10%", "kcal": 133, "portion": 150, "unit": "g"}, {"category": "Milchprodukte", "name": "Quark 20%", "kcal": 109, "portion": 250, "unit": "g"}, {"category": "Milchprodukte", "name": "Hüttenkäse", "kcal": 98, "portion": 200, "unit": "g"}, {"category": "Milchprodukte", "name": "Frischkäse Doppelrahm", "kcal": 340, "portion": 30, "unit": "g"}, {"category": "Milchprodukte", "name": "Frischkäse light", "kcal": 170, "portion": 30, "unit": "g"}, {"category": "Milchprodukte", "name": "Sahne 30%", "kcal": 292, "portion": 50, "unit": "ml"}, {"category": "Milchprodukte", "name": "Kochsahne 15%", "kcal": 160, "portion": 50, "unit": "ml"}, {"category": "Milchprodukte", "name": "Saure Sahne", "kcal": 120, "portion": 50, "unit": "g"}, {"category": "Milchprodukte", "name": "Crème fraîche", "kcal": 300, "portion": 50, "unit": "g"}, {"category": "Milchprodukte", "name": "Schmand", "kcal": 240, "portion": 50, "unit": "g"}, {"category": "Milchprodukte", "name": "Buttermilch", "kcal": 37, "portion": 250, "unit": "ml"}, {"category": "Milchprodukte", "name": "Kefir", "kcal": 63, "portion": 250, "unit": "ml"}, {"category": "Käse", "name": "Edamer", "kcal": 357, "portion": 30, "unit": "g"}, {"category": "Käse", "name": "Emmentaler", "kcal": 380, "portion": 30, "unit": "g"}, {"category": "Käse", "name": "Cheddar", "kcal": 403, "portion": 30, "unit": "g"}, {"category": "Käse", "name": "Mozzarella light", "kcal": 170, "portion": 125, "unit": "g"}, {"category": "Käse", "name": "Hirtenkäse", "kcal": 270, "portion": 50, "unit": "g"}, {"category": "Käse", "name": "Grana Padano", "kcal": 398, "portion": 20, "unit": "g"}, {"category": "Käse", "name": "Camembert", "kcal": 300, "portion": 40, "unit": "g"}, {"category": "Käse", "name": "Brie", "kcal": 334, "portion": 40, "unit": "g"}, {"category": "Käse", "name": "Gorgonzola", "kcal": 350, "portion": 30, "unit": "g"}, {"category": "Käse", "name": "Harzer Käse", "kcal": 126, "portion": 50, "unit": "g"}, {"category": "Fleisch", "name": "Hähnchenschenkel mit Haut", "kcal": 220, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Putenbrust", "kcal": 110, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Schweinehack", "kcal": 270, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Ribeye Steak", "kcal": 290, "portion": 250, "unit": "g"}, {"category": "Fleisch", "name": "Rinderfilet", "kcal": 190, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Roastbeef", "kcal": 180, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Schweineschnitzel natur", "kcal": 180, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Schweinefilet", "kcal": 145, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Schweinekotelett", "kcal": 240, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Schweinebauch", "kcal": 520, "portion": 150, "unit": "g"}, {"category": "Fleisch", "name": "Kasseler", "kcal": 150, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Gulasch Rind", "kcal": 170, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Gulasch Schwein", "kcal": 190, "portion": 200, "unit": "g"}, {"category": "Fleisch", "name": "Lammkeule", "kcal": 220, "portion": 200, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Wiener Würstchen", "kcal": 290, "portion": 100, "unit": "g", "pieceWeight": 50, "pieceLabel": "Stück"}, {"category": "Wurst & Aufschnitt", "name": "Fleischwurst", "kcal": 300, "portion": 100, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Geflügelsalami", "kcal": 300, "portion": 30, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Rohschinken", "kcal": 250, "portion": 30, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Schwarzwälder Schinken", "kcal": 250, "portion": 30, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Mortadella", "kcal": 310, "portion": 50, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Lyoner", "kcal": 300, "portion": 50, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Leberwurst", "kcal": 330, "portion": 30, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Teewurst", "kcal": 430, "portion": 30, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Mett", "kcal": 280, "portion": 80, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Cabanossi", "kcal": 450, "portion": 50, "unit": "g"}, {"category": "Wurst & Aufschnitt", "name": "Sucuk", "kcal": 450, "portion": 50, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Thunfisch Dose in Öl abgetropft", "kcal": 200, "portion": 150, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Kabeljau", "kcal": 82, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Seelachs", "kcal": 92, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Forelle", "kcal": 148, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Dorade", "kcal": 120, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Makrele", "kcal": 205, "portion": 150, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Hering", "kcal": 203, "portion": 150, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Matjes", "kcal": 220, "portion": 150, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Sardinen in Öl", "kcal": 208, "portion": 100, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Fischstäbchen", "kcal": 220, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Backfisch", "kcal": 240, "portion": 200, "unit": "g"}, {"category": "Fisch & Meeresfrüchte", "name": "Räucherlachs", "kcal": 180, "portion": 100, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Ei gekocht", "kcal": 155, "portion": 60, "unit": "g", "pieceWeight": 60, "pieceLabel": "Ei"}, {"category": "Eier & Vegetarisch", "name": "Spiegelei", "kcal": 190, "portion": 60, "unit": "g", "pieceWeight": 60, "pieceLabel": "Ei"}, {"category": "Eier & Vegetarisch", "name": "Eiklar", "kcal": 52, "portion": 100, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Tofu geräuchert", "kcal": 180, "portion": 150, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Tempeh", "kcal": 193, "portion": 150, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Seitan", "kcal": 141, "portion": 150, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Veggie Burger Patty", "kcal": 200, "portion": 100, "unit": "g"}, {"category": "Eier & Vegetarisch", "name": "Vegane Nuggets", "kcal": 220, "portion": 150, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Linsen trocken", "kcal": 353, "portion": 80, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Rote Linsen trocken", "kcal": 350, "portion": 80, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Kichererbsen trocken", "kcal": 364, "portion": 80, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Weiße Bohnen gekocht", "kcal": 139, "portion": 150, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Schwarze Bohnen gekocht", "kcal": 132, "portion": 150, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Sojabohnen gekocht", "kcal": 173, "portion": 150, "unit": "g"}, {"category": "Hülsenfrüchte", "name": "Edamame", "kcal": 121, "portion": 150, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Haselnüsse", "kcal": 628, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Pistazien", "kcal": 562, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Macadamia", "kcal": 718, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Pekannüsse", "kcal": 691, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Paranüsse", "kcal": 659, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Sonnenblumenkerne", "kcal": 584, "portion": 20, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Kürbiskerne", "kcal": 559, "portion": 20, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Chiasamen", "kcal": 486, "portion": 20, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Leinsamen", "kcal": 534, "portion": 20, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Sesam", "kcal": 573, "portion": 20, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Mandelmus", "kcal": 614, "portion": 30, "unit": "g"}, {"category": "Nüsse & Samen", "name": "Tahini", "kcal": 595, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Weiße Schokolade", "kcal": 540, "portion": 25, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Fruchtgummi", "kcal": 340, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Lakritz", "kcal": 350, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Bonbons", "kcal": 390, "portion": 20, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Marshmallows", "kcal": 318, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Butterkeks", "kcal": 440, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Schokokeks", "kcal": 500, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Doppelkeks", "kcal": 500, "portion": 30, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Brownie", "kcal": 466, "portion": 80, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Muffin Schoko", "kcal": 420, "portion": 100, "unit": "g", "pieceWeight": 100, "pieceLabel": "Stück"}, {"category": "Süßigkeiten & Dessert", "name": "Donut", "kcal": 452, "portion": 75, "unit": "g", "pieceWeight": 75, "pieceLabel": "Stück"}, {"category": "Süßigkeiten & Dessert", "name": "Berliner", "kcal": 330, "portion": 100, "unit": "g", "pieceWeight": 100, "pieceLabel": "Stück"}, {"category": "Süßigkeiten & Dessert", "name": "Rührkuchen", "kcal": 390, "portion": 100, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Käsekuchen", "kcal": 320, "portion": 120, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Apfelkuchen", "kcal": 250, "portion": 120, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Tiramisu", "kcal": 280, "portion": 150, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Pudding Schoko", "kcal": 120, "portion": 150, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Pudding Vanille", "kcal": 115, "portion": 150, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Honig", "kcal": 304, "portion": 20, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Marmelade", "kcal": 250, "portion": 25, "unit": "g"}, {"category": "Süßigkeiten & Dessert", "name": "Zucker", "kcal": 400, "portion": 10, "unit": "g"}, {"category": "Snacks", "name": "Paprikachips", "kcal": 530, "portion": 100, "unit": "g"}, {"category": "Snacks", "name": "Tortilla Chips", "kcal": 500, "portion": 100, "unit": "g"}, {"category": "Snacks", "name": "Erdnussflips", "kcal": 500, "portion": 100, "unit": "g"}, {"category": "Snacks", "name": "Cracker", "kcal": 430, "portion": 50, "unit": "g"}, {"category": "Snacks", "name": "Popcorn süß", "kcal": 400, "portion": 100, "unit": "g"}, {"category": "Snacks", "name": "Popcorn salzig", "kcal": 380, "portion": 100, "unit": "g"}, {"category": "Snacks", "name": "Studentenfutter", "kcal": 500, "portion": 50, "unit": "g"}, {"category": "Snacks", "name": "Müsliriegel", "kcal": 400, "portion": 30, "unit": "g", "pieceWeight": 30, "pieceLabel": "Riegel"}, {"category": "Eis", "name": "Erdbeereis", "kcal": 192, "portion": 100, "unit": "g"}, {"category": "Eis", "name": "Stracciatella Eis", "kcal": 220, "portion": 100, "unit": "g"}, {"category": "Eis", "name": "Sorbet", "kcal": 130, "portion": 100, "unit": "g"}, {"category": "Eis", "name": "Stieleis mit Schokolade", "kcal": 320, "portion": 110, "unit": "g", "pieceWeight": 110, "pieceLabel": "Stück"}, {"category": "Eis", "name": "Eistüte", "kcal": 250, "portion": 120, "unit": "g", "pieceWeight": 120, "pieceLabel": "Stück"}, {"category": "Saucen & Fette", "name": "Senf mittelscharf", "kcal": 66, "portion": 20, "unit": "g"}, {"category": "Saucen & Fette", "name": "Dijon Senf", "kcal": 150, "portion": 20, "unit": "g"}, {"category": "Saucen & Fette", "name": "Mayonnaise light", "kcal": 300, "portion": 20, "unit": "g"}, {"category": "Saucen & Fette", "name": "BBQ Sauce", "kcal": 160, "portion": 30, "unit": "g"}, {"category": "Saucen & Fette", "name": "Currysauce", "kcal": 150, "portion": 50, "unit": "g"}, {"category": "Saucen & Fette", "name": "Salsa", "kcal": 40, "portion": 50, "unit": "g"}, {"category": "Saucen & Fette", "name": "Sweet Chili Sauce", "kcal": 220, "portion": 30, "unit": "g"}, {"category": "Saucen & Fette", "name": "Sojasauce", "kcal": 53, "portion": 15, "unit": "ml"}, {"category": "Saucen & Fette", "name": "Remoulade", "kcal": 500, "portion": 30, "unit": "g"}, {"category": "Saucen & Fette", "name": "Joghurt Dressing", "kcal": 150, "portion": 40, "unit": "g"}, {"category": "Saucen & Fette", "name": "French Dressing", "kcal": 350, "portion": 40, "unit": "g"}, {"category": "Saucen & Fette", "name": "Balsamico Dressing", "kcal": 180, "portion": 40, "unit": "g"}, {"category": "Saucen & Fette", "name": "Rapsöl", "kcal": 884, "portion": 10, "unit": "g"}, {"category": "Saucen & Fette", "name": "Pesto grün", "kcal": 450, "portion": 30, "unit": "g"}, {"category": "Saucen & Fette", "name": "Tomatensauce", "kcal": 50, "portion": 150, "unit": "g"}, {"category": "Saucen & Fette", "name": "Bolognese Sauce", "kcal": 120, "portion": 200, "unit": "g"}, {"category": "Saucen & Fette", "name": "Rahmsauce", "kcal": 150, "portion": 100, "unit": "g"}, {"category": "Saucen & Fette", "name": "Pilzrahmsauce", "kcal": 130, "portion": 150, "unit": "g"}, {"category": "Saucen & Fette", "name": "Bratensauce", "kcal": 60, "portion": 100, "unit": "g"}, {"category": "Getränke", "name": "Limonade", "kcal": 40, "portion": 330, "unit": "ml"}, {"category": "Getränke", "name": "Eistee", "kcal": 30, "portion": 330, "unit": "ml"}, {"category": "Getränke", "name": "Orangensaft", "kcal": 45, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Traubensaft", "kcal": 60, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Kaffee mit Milch", "kcal": 20, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Cappuccino", "kcal": 45, "portion": 200, "unit": "ml"}, {"category": "Getränke", "name": "Latte Macchiato", "kcal": 55, "portion": 300, "unit": "ml"}, {"category": "Getränke", "name": "Kakao", "kcal": 80, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Tee ungesüßt", "kcal": 1, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Energy Drink", "kcal": 45, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Energy Drink Zero", "kcal": 3, "portion": 250, "unit": "ml"}, {"category": "Getränke", "name": "Alkoholfreies Bier", "kcal": 25, "portion": 500, "unit": "ml"}, {"category": "Getränke", "name": "Weizenbier", "kcal": 45, "portion": 500, "unit": "ml"}, {"category": "Getränke", "name": "Rotwein", "kcal": 85, "portion": 150, "unit": "ml"}, {"category": "Getränke", "name": "Weißwein", "kcal": 82, "portion": 150, "unit": "ml"}, {"category": "Getränke", "name": "Sekt", "kcal": 75, "portion": 100, "unit": "ml"}, {"category": "Gerichte & Fast Food", "name": "Pizza Schinken", "kcal": 270, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pizza Hawaii", "kcal": 260, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pizza Tonno", "kcal": 260, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Dürüm Döner", "kcal": 220, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Lahmacun", "kcal": 230, "portion": 350, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Bratwurst mit Brötchen", "kcal": 280, "portion": 250, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Doppel-Cheeseburger", "kcal": 300, "portion": 300, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Chickenburger", "kcal": 260, "portion": 200, "unit": "g", "pieceWeight": 200, "pieceLabel": "Stück"}, {"category": "Gerichte & Fast Food", "name": "Hot Dog", "kcal": 280, "portion": 200, "unit": "g", "pieceWeight": 200, "pieceLabel": "Stück"}, {"category": "Gerichte & Fast Food", "name": "Gyros mit Pommes und Tzatziki", "kcal": 220, "portion": 600, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Jägerschnitzel mit Pommes", "kcal": 220, "portion": 650, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Spaghetti Carbonara", "kcal": 190, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Nudelauflauf Hackfleisch", "kcal": 180, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Kartoffelauflauf", "kcal": 160, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Gulasch mit Kartoffeln", "kcal": 120, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Geschnetzeltes mit Reis", "kcal": 150, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Hähnchen Curry mit Reis", "kcal": 160, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Butter Chicken mit Reis", "kcal": 190, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Gebratener Reis Hähnchen", "kcal": 180, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Gebratene Nudeln Hähnchen", "kcal": 200, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Sushi Maki gemischt", "kcal": 150, "portion": 250, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Sushi Nigiri", "kcal": 160, "portion": 250, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Poke Bowl Lachs", "kcal": 140, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Caesar Salad Hähnchen", "kcal": 150, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Gemischter Salat ohne Dressing", "kcal": 35, "portion": 300, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Gemischter Salat mit Dressing", "kcal": 90, "portion": 350, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Kartoffelsalat Mayo", "kcal": 180, "portion": 250, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Kartoffelsalat Essig/Öl", "kcal": 120, "portion": 250, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Nudelsalat", "kcal": 190, "portion": 250, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Bauernfrühstück", "kcal": 170, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Rührei mit Speck", "kcal": 220, "portion": 250, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pfannkuchen süß", "kcal": 220, "portion": 200, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Waffel", "kcal": 290, "portion": 100, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Milchreis", "kcal": 120, "portion": 300, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Linsensuppe", "kcal": 80, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Erbsensuppe", "kcal": 95, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Kartoffelsuppe", "kcal": 75, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Tomatensuppe", "kcal": 45, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Hühnersuppe mit Nudeln", "kcal": 60, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Frikadelle", "kcal": 250, "portion": 150, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Hackbraten", "kcal": 220, "portion": 200, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Königsberger Klopse", "kcal": 150, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Roulade mit Beilagen", "kcal": 160, "portion": 550, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Käsespätzle", "kcal": 220, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Flammkuchen", "kcal": 250, "portion": 300, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Quiche Lorraine", "kcal": 300, "portion": 250, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Wrap Hähnchen", "kcal": 180, "portion": 350, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Burrito", "kcal": 200, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Taco mit Hack", "kcal": 220, "portion": 150, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Nachos mit Käse", "kcal": 350, "portion": 250, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Falafel Wrap", "kcal": 190, "portion": 350, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Veggie Bowl", "kcal": 110, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Shakshuka", "kcal": 100, "portion": 400, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pad Thai", "kcal": 180, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Thai Curry mit Reis", "kcal": 170, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pho Bo", "kcal": 70, "portion": 600, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Ramen", "kcal": 100, "portion": 600, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Gyoza", "kcal": 220, "portion": 180, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Frühlingsrollen", "kcal": 250, "portion": 180, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Chicken Tikka Masala", "kcal": 160, "portion": 350, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Dal", "kcal": 120, "portion": 350, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Palak Paneer", "kcal": 150, "portion": 350, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Naan", "kcal": 300, "portion": 120, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Biryani Hähnchen", "kcal": 170, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Paella", "kcal": 150, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Risotto Pilz", "kcal": 150, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pasta Arrabbiata", "kcal": 140, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pasta Pesto", "kcal": 200, "portion": 500, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Pasta Aglio e Olio", "kcal": 220, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Fish and Chips", "kcal": 220, "portion": 600, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Spareribs", "kcal": 290, "portion": 450, "unit": "g"}, {"category": "Gerichte & Fast Food", "name": "Chicken Wings", "kcal": 290, "portion": 300, "unit": "g"}, {"category": "Milchprodukte", "name": "REWE Bio Frische Vollmilch 3,8%", "kcal": 68, "portion": 250, "unit": "ml", "source": "REWE"}, {"category": "Milchprodukte", "name": "REWE Bio H-Vollmilch 3,8%", "kcal": 67, "portion": 250, "unit": "ml", "source": "REWE"}, {"category": "Milchprodukte", "name": "Bio Vollmilch 3,8%", "kcal": 68, "portion": 250, "unit": "ml", "source": "Richtwert"}], "customFoods": [], "diary": [], "weights": [], "healthDays": {}};
 const STORAGE_KEY = "kalorientracker_state_v1";
@@ -646,8 +678,16 @@ const diaryDaySummary=document.getElementById("diaryDaySummary");
 const onlineSearchBtn=document.getElementById("onlineSearchBtn");
 const onlineSearchStatus=document.getElementById("onlineSearchStatus");
 const onlineResults=document.getElementById("onlineResults");
+const webSearchBtn=document.getElementById("webSearchBtn");
+const diaryPhotoBtn=document.getElementById("diaryPhotoBtn");
+const diaryPhotoInput=document.getElementById("diaryPhotoInput");
+const diaryOcrStatus=document.getElementById("diaryOcrStatus");
+const diaryBarcodeHintBtn=document.getElementById("diaryBarcodeHintBtn");
 const fName=document.getElementById("fName");
 const fKcal=document.getElementById("fKcal");
+const fPhotoBtn=document.getElementById("fPhotoBtn");
+const fPhotoInput=document.getElementById("fPhotoInput");
+const fOcrStatus=document.getElementById("fOcrStatus");
 const fPortion=document.getElementById("fPortion");
 const fUnit=document.getElementById("fUnit");
 const fProtein=document.getElementById("fProtein");
@@ -665,6 +705,14 @@ const favoriteSelectedFood=document.getElementById("favoriteSelectedFood");
 const favoritesList=document.getElementById("favoritesList");
 const rName=document.getElementById("rName");
 const rSearch=document.getElementById("rSearch");
+const rOnlineSearchBtn=document.getElementById("rOnlineSearchBtn");
+const rWebSearchBtn=document.getElementById("rWebSearchBtn");
+const rPhotoBtn=document.getElementById("rPhotoBtn");
+const rPhotoInput=document.getElementById("rPhotoInput");
+const rClearOnlineBtn=document.getElementById("rClearOnlineBtn");
+const rOnlineStatus=document.getElementById("rOnlineStatus");
+const rOnlineResults=document.getElementById("rOnlineResults");
+const rOcrStatus=document.getElementById("rOcrStatus");
 const rSuggestions=document.getElementById("rSuggestions");
 const rAmount=document.getElementById("rAmount");
 const rUnit=document.getElementById("rUnit");
@@ -1016,45 +1064,49 @@ function openFoodFactsToFood(p){
     }
   };
 }
+
+async function fetchOpenFoodFacts(query){
+  const q=String(query||"").trim();
+  if(q.length<2)return [];
+  if(/^\d{8,14}$/.test(q)){
+    const url=`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(q)}?fields=code,product_name,product_name_de,brands,nutriments`;
+    const res=await fetch(url,{cache:"no-store"});
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    return data?.product?[openFoodFactsToFood(data.product)].filter(Boolean):[];
+  }
+  const url="https://world.openfoodfacts.org/cgi/search.pl?"+new URLSearchParams({
+    search_terms:q,search_simple:"1",action:"process",json:"1",page_size:"12",
+    fields:"code,product_name,product_name_de,brands,nutriments"
+  });
+  const res=await fetch(url,{cache:"no-store"});
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const data=await res.json();
+  return (data.products||[]).map(openFoodFactsToFood).filter(Boolean).slice(0,10);
+}
+function openWebFallback(query){
+  const q=String(query||"").trim();
+  if(!q){alert("Bitte zuerst einen Suchbegriff eingeben.");return}
+  const search=`${q} Nährwerte kcal 100g FDDB`;
+  window.open("https://www.google.com/search?q="+encodeURIComponent(search),"_blank","noopener");
+}
 async function searchOpenFoodFacts(){
   const q=dSearch.value.trim();
   if(q.length<2){onlineSearchStatus.textContent="Bitte mindestens 2 Zeichen eingeben.";return}
   onlineSearchBtn.disabled=true;
-  onlineSearchStatus.textContent="Online-Suche läuft …";
-  onlineResults.classList.add("hidden");
-  onlineResults.innerHTML="";
+  onlineSearchStatus.textContent="Open Food Facts wird durchsucht …";
+  onlineResults.classList.add("hidden"); onlineResults.innerHTML="";
   try{
-    let url;
-    if(/^\d{8,14}$/.test(q)){
-      url=`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(q)}?fields=code,product_name,product_name_de,brands,nutriments`;
-      const res=await fetch(url);
-      if(!res.ok)throw new Error("HTTP "+res.status);
-      const data=await res.json();
-      const foods=data?.product?[openFoodFactsToFood(data.product)].filter(Boolean):[];
-      renderOnlineFoods(foods);
-    }else{
-      url="https://world.openfoodfacts.org/cgi/search.pl?"+new URLSearchParams({
-        search_terms:q,search_simple:"1",action:"process",json:"1",page_size:"10",
-        fields:"code,product_name,product_name_de,brands,nutriments"
-      });
-      const res=await fetch(url);
-      if(!res.ok)throw new Error("HTTP "+res.status);
-      const data=await res.json();
-      const foods=(data.products||[]).map(openFoodFactsToFood).filter(Boolean).slice(0,8);
-      renderOnlineFoods(foods);
-    }
+    const foods=await fetchOpenFoodFacts(q);
+    renderOnlineFoods(foods);
+    if(!foods.length)onlineSearchStatus.innerHTML='Open Food Facts hat nichts gefunden. <b>„Web weitersuchen“</b> durchsucht das Web inkl. FDDB-Treffern.';
   }catch(err){
-    onlineSearchStatus.textContent="Online-Suche gerade nicht erreichbar. Lokale Suche funktioniert weiter.";
-  }finally{
-    onlineSearchBtn.disabled=false;
-  }
+    onlineSearchStatus.innerHTML='Open Food Facts ist gerade nicht erreichbar. Lokale Suche funktioniert weiter – nutze <b>„Web weitersuchen“</b>.';
+  }finally{onlineSearchBtn.disabled=false}
 }
 function renderOnlineFoods(foods){
-  if(!foods.length){
-    onlineSearchStatus.textContent="Online keine passenden Produkte gefunden.";
-    return;
-  }
-  onlineSearchStatus.textContent=`${foods.length} Online-Treffer · Daten von Open Food Facts`;
+  if(!foods.length){onlineResults.classList.add("hidden");return}
+  onlineSearchStatus.textContent=`${foods.length} Treffer · Open Food Facts`;
   onlineResults.innerHTML=foods.map((f,i)=>{
     const n=nutritionPer100(f)||{};
     return `<div class="online-result">
@@ -1064,12 +1116,109 @@ function renderOnlineFoods(foods){
     </div>`;
   }).join("");
   onlineResults.classList.remove("hidden");
-  [...onlineResults.querySelectorAll("[data-online-index]")].forEach(btn=>btn.addEventListener("click",()=>{
-    selectFood(foods[Number(btn.dataset.onlineIndex)]);
-  }));
+  [...onlineResults.querySelectorAll("[data-online-index]")].forEach(btn=>btn.addEventListener("click",()=>selectFood(foods[Number(btn.dataset.onlineIndex)])));
 }
 onlineSearchBtn.addEventListener("click",searchOpenFoodFacts);
+webSearchBtn.addEventListener("click",()=>openWebFallback(dSearch.value));
+diaryBarcodeHintBtn.addEventListener("click",()=>{
+  const q=dSearch.value.trim();
+  if(/^\d{8,14}$/.test(q))searchOpenFoodFacts();
+  else alert("Tipp: Du kannst in das Suchfeld auch einen Barcode mit 8–14 Ziffern eingeben und dann „Open Food Facts“ drücken.");
+});
 
+/* OCR / Nährwertfoto */
+function parseLocaleNumber(v){
+  if(v==null)return null;
+  const m=String(v).replace(/\s/g,"").replace(",",".").match(/-?\d+(?:\.\d+)?/);
+  return m?Number(m[0]):null;
+}
+function parseNutritionLabel(text){
+  const raw=String(text||"").replace(/\r/g,"\n");
+  const lines=raw.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const low=lines.map(x=>x.toLocaleLowerCase("de-DE"));
+  const result={nutrition:{}};
+  const findValue=(patterns)=>{
+    for(let i=0;i<low.length;i++){
+      if(patterns.some(p=>p.test(low[i]))){
+        const nums=lines[i].match(/\d+(?:[.,]\d+)?/g)||[];
+        if(nums.length)return parseLocaleNumber(nums[nums.length-1]);
+        if(lines[i+1]){
+          const n=parseLocaleNumber(lines[i+1]);
+          if(n!=null)return n;
+        }
+      }
+    }
+    return null;
+  };
+  // kcal: prefer a number directly next to kcal, not kJ
+  for(let i=0;i<low.length;i++){
+    if(low[i].includes("kcal")){
+      const m=lines[i].match(/(\d+(?:[.,]\d+)?)\s*kcal/i);
+      if(m){result.kcal=parseLocaleNumber(m[1]);break}
+    }
+  }
+  if(result.kcal==null){
+    const energy=findValue([/energie/,/energy/]);
+    if(energy!=null && energy<1000)result.kcal=energy;
+  }
+  const map=[
+    ["fat",[/\bfett\b/,/\bfat\b/]],
+    ["satFat",[/gesättigt/,/saturat/]],
+    ["carbs",[/kohlenhydrat/,/carbohydrat/]],
+    ["sugar",[/davon zucker/,/\bzucker\b/,/\bsugars?\b/]],
+    ["fiber",[/ballaststoff/,/\bfibre\b/,/\bfiber\b/]],
+    ["protein",[/eiweiß/,/eiweiss/,/\bprotein\b/]],
+    ["salt",[/\bsalz\b/,/\bsalt\b/]]
+  ];
+  for(const [key,patterns] of map){
+    const v=findValue(patterns);
+    if(v!=null)result.nutrition[key]=v;
+  }
+  return result;
+}
+async function ocrNutritionImage(file,statusEl){
+  if(!file)throw new Error("Kein Bild ausgewählt.");
+  if(!window.Tesseract)throw new Error("Texterkennung konnte nicht geladen werden. Internetverbindung prüfen.");
+  statusEl.textContent="Foto wird gelesen … das kann auf dem iPhone einige Sekunden dauern.";
+  const worker=await Tesseract.createWorker("deu+eng",1,{
+    logger:m=>{
+      if(m.status==="recognizing text" && Number.isFinite(m.progress))statusEl.textContent=`Texterkennung ${Math.round(m.progress*100)} % …`;
+    }
+  });
+  try{
+    const ret=await worker.recognize(file);
+    return {parsed:parseNutritionLabel(ret.data.text),text:ret.data.text};
+  }finally{await worker.terminate()}
+}
+function nutritionSummary(p){
+  const n=p.nutrition||{};
+  const parts=[];
+  if(p.kcal!=null)parts.push(`${fmt(p.kcal,0)} kcal`);
+  if(n.protein!=null)parts.push(`EW ${fmt(n.protein,1)} g`);
+  if(n.carbs!=null)parts.push(`KH ${fmt(n.carbs,1)} g`);
+  if(n.fat!=null)parts.push(`Fett ${fmt(n.fat,1)} g`);
+  if(n.fiber!=null)parts.push(`Ballaststoffe ${fmt(n.fiber,1)} g`);
+  if(n.sugar!=null)parts.push(`Zucker ${fmt(n.sugar,1)} g`);
+  if(n.salt!=null)parts.push(`Salz ${fmt(n.salt,2)} g`);
+  return parts.join(" · ");
+}
+function ocrFoodFromParsed(parsed,name){
+  return {category:"Foto",name,kcal:Number(parsed.kcal||0),portion:100,unit:"g",source:"Nährwertfoto",nutrition:{...(parsed.nutrition||{})}};
+}
+diaryPhotoBtn.addEventListener("click",()=>diaryPhotoInput.click());
+diaryPhotoInput.addEventListener("change",async e=>{
+  const file=e.target.files?.[0]; if(!file)return;
+  try{
+    const {parsed}=await ocrNutritionImage(file,diaryOcrStatus);
+    if(parsed.kcal==null){diaryOcrStatus.textContent="Keine kcal sicher erkannt. Bitte Foto gerade, nah und gut beleuchtet aufnehmen.";return}
+    const name=prompt("Wie heißt das Lebensmittel?",dSearch.value.trim()||"Neues Lebensmittel");
+    if(!name)return;
+    const food=ocrFoodFromParsed(parsed,name.trim());
+    diaryOcrStatus.textContent="Erkannt: "+nutritionSummary(parsed)+" · Bitte Werte vor dem Speichern prüfen.";
+    selectFood(food);
+  }catch(err){diaryOcrStatus.textContent="Foto konnte nicht ausgewertet werden: "+err.message}
+  finally{e.target.value=""}
+});
 function clearFoodEntry(){
   selectedFood=null;
   dSearch.value="";
@@ -1271,6 +1420,48 @@ function renderRecipeSuggestions(){
     rSuggestions.classList.add("hidden");rAmount.focus();
   }));
 }
+
+async function searchRecipeOnline(){
+  const q=rSearch.value.trim();
+  if(q.length<2){rOnlineStatus.textContent="Bitte mindestens 2 Zeichen eingeben.";return}
+  rOnlineSearchBtn.disabled=true;rOnlineStatus.textContent="Open Food Facts wird durchsucht …";
+  rOnlineResults.classList.add("hidden");rOnlineResults.innerHTML="";
+  try{
+    const foods=await fetchOpenFoodFacts(q);
+    if(!foods.length){rOnlineStatus.innerHTML='Keine Treffer. Nutze <b>„Web weitersuchen“</b> oder fotografiere die Nährwertdeklaration.';return}
+    rOnlineStatus.textContent=`${foods.length} Online-Treffer`;
+    rOnlineResults.innerHTML=foods.map((f,i)=>`<div class="online-result"><div class="entry-name">${esc(f.name)}</div><div class="suggestion-meta">${fmt(f.kcal,0)} kcal/100 g</div><button class="mini-btn" data-r-online="${i}">Als Zutat übernehmen</button></div>`).join("");
+    rOnlineResults.classList.remove("hidden");
+    [...rOnlineResults.querySelectorAll("[data-r-online]")].forEach(btn=>btn.addEventListener("click",()=>{
+      recipeSelectedFood=foods[Number(btn.dataset.rOnline)];
+      rSearch.value=recipeSelectedFood.name;rUnit.value=recipeSelectedFood.unit||"g";
+      rSelectedInfo.textContent=`${fmt(recipeSelectedFood.kcal,1)} kcal/100 ${recipeSelectedFood.unit} · Online`;
+      rOnlineResults.classList.add("hidden");rOnlineStatus.textContent="Online-Zutat ausgewählt.";
+      rAmount.focus();
+    }));
+  }catch(err){rOnlineStatus.innerHTML='Open Food Facts ist gerade nicht erreichbar. Nutze <b>„Web weitersuchen“</b> oder das Nährwertfoto.'}
+  finally{rOnlineSearchBtn.disabled=false}
+}
+rOnlineSearchBtn.addEventListener("click",searchRecipeOnline);
+rWebSearchBtn.addEventListener("click",()=>openWebFallback(rSearch.value));
+rClearOnlineBtn.addEventListener("click",()=>{rOnlineResults.classList.add("hidden");rOnlineResults.innerHTML="";rOnlineStatus.textContent=""});
+rPhotoBtn.addEventListener("click",()=>rPhotoInput.click());
+rPhotoInput.addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{
+    const {parsed}=await ocrNutritionImage(file,rOcrStatus);
+    if(parsed.kcal==null){rOcrStatus.textContent="Keine kcal sicher erkannt. Bitte Foto erneut aufnehmen.";return}
+    const name=prompt("Wie heißt die Zutat?",rSearch.value.trim()||"Neue Zutat");
+    if(!name)return;
+    recipeSelectedFood=ocrFoodFromParsed(parsed,name.trim());
+    rSearch.value=recipeSelectedFood.name;rUnit.value="g";
+    rSelectedInfo.textContent=`${nutritionSummary(parsed)} · aus Foto`;
+    rOcrStatus.textContent="Nährwerte erkannt. Bitte Menge eintragen und Zutat hinzufügen.";
+    rAmount.focus();
+  }catch(err){rOcrStatus.textContent="Foto konnte nicht ausgewertet werden: "+err.message}
+  finally{e.target.value=""}
+});
+
 rSearch.addEventListener("input",()=>{recipeSelectedFood=null;rUnit.value="";rSelectedInfo.textContent="";renderRecipeSuggestions()});
 rSearch.addEventListener("focus",renderRecipeSuggestions);
 document.addEventListener("click",e=>{if(!e.target.closest(".recipe-search-wrap"))rSuggestions.classList.add("hidden")});
@@ -1313,6 +1504,27 @@ function renderRecipes(){
   [...recipesList.querySelectorAll("[data-r-delete]")].forEach(b=>b.addEventListener("click",()=>{const i=Number(b.dataset.rDelete),r=state.recipes[i];if(!confirm(`Gericht „${r.name}“ löschen?`))return;state.favorites=state.favorites.filter(x=>x!==`recipe:${r.id}`);state.recipes.splice(i,1);saveLocal()}));
 }
 renderRecipeBuilder();
+
+
+fPhotoBtn.addEventListener("click",()=>fPhotoInput.click());
+fPhotoInput.addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{
+    const {parsed}=await ocrNutritionImage(file,fOcrStatus);
+    if(parsed.kcal==null){fOcrStatus.textContent="Keine kcal sicher erkannt. Bitte Foto gerade, nah und gut beleuchtet aufnehmen.";return}
+    fKcal.value=parsed.kcal??"";
+    fProtein.value=parsed.nutrition?.protein??"";
+    fCarbs.value=parsed.nutrition?.carbs??"";
+    fFat.value=parsed.nutrition?.fat??"";
+    fFiber.value=parsed.nutrition?.fiber??"";
+    fSugar.value=parsed.nutrition?.sugar??"";
+    fSalt.value=parsed.nutrition?.salt??"";
+    fSatFat.value=parsed.nutrition?.satFat??"";
+    fOcrStatus.textContent="Erkannt: "+nutritionSummary(parsed)+" · Bitte Werte mit der Packung vergleichen.";
+    if(!fName.value)fName.focus();
+  }catch(err){fOcrStatus.textContent="Foto konnte nicht ausgewertet werden: "+err.message}
+  finally{e.target.value=""}
+});
 
 addFood.addEventListener("click",()=>{
   const name=fName.value.trim(),kcal=Number(fKcal.value),portion=Number(fPortion.value||100),unit=fUnit.value;
