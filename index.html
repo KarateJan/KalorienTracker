@@ -255,6 +255,28 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 .body-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.body-item{border:1px solid rgba(143,162,189,.12);background:rgba(7,17,31,.42);border-radius:15px;padding:12px}.body-item .v{font-size:23px;font-weight:850;margin-top:4px}
 @media(min-width:700px){.detail-grid,.body-grid,.history-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
+
+/* v12 compact tile dashboard */
+.dashboard-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.dashboard-tiles .summary-card{min-width:0;padding:14px 15px;border-radius:20px;margin:0}
+.dashboard-tiles .summary-card.open{grid-column:1/-1}
+.dashboard-tiles .summary-head{min-height:72px;align-items:flex-start}
+.dashboard-tiles .summary-title{font-size:15px}
+.tile-main{font-size:24px;font-weight:850;letter-spacing:-.7px;line-height:1.08;margin-top:8px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile-sub{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.35;min-height:16px}
+.tile-icon{font-size:22px;line-height:1;color:#71e8c0;margin-top:1px}
+.dashboard-tiles .summary-details{border-top:1px solid rgba(143,162,189,.13);padding-top:14px}
+.dashboard-tiles .summary-progress{margin-top:10px}
+.dashboard-tiles .summary-card.open .summary-head{min-height:auto}
+.dashboard-tiles .summary-card.open .tile-main{font-size:22px}
+.dashboard-tiles .summary-card.open .tile-sub{min-height:0}
+.dashboard-tiles .metric-card{min-height:98px}
+.dashboard-tiles .detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dashboard-tiles #calorieSummaryCard .summary-progress,.dashboard-tiles #weightSummaryCard .summary-progress{display:block}
+.dashboard-tiles #calorieSummaryCard.open .summary-progress,.dashboard-tiles #weightSummaryCard.open .summary-progress{margin-bottom:2px}
+.dashboard-quick-btn{width:100%;margin-top:12px}
+@media(max-width:360px){.dashboard-tiles{grid-template-columns:1fr}.dashboard-tiles .summary-card.open{grid-column:auto}.tile-main{font-size:23px}}
+
 </style>
 </head>
 <body>
@@ -275,11 +297,11 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 
 <main>
 <section id="dashboard" class="view active">
-  <div class="dashboard-stack">
+  <div class="dashboard-tiles">
     <div class="summary-card" id="calorieSummaryCard">
       <div class="summary-head" data-toggle-card="calorieSummaryCard">
-        <div><div class="summary-title">Kalorien heute</div><div id="kcalBarText" class="muted small" style="margin-top:3px"></div></div>
-        <div class="summary-chevron">⌄</div>
+        <div style="min-width:0;flex:1"><div class="summary-title">Kalorien</div><div class="tile-main" id="calorieTileMain">0 / 0</div><div class="tile-sub" id="kcalBarText"></div></div>
+        <div><div class="tile-icon">◔</div><div class="summary-chevron">⌄</div></div>
       </div>
       <div class="summary-progress"><div class="progress"><div id="kcalBar" style="width:0%"></div></div></div>
       <div class="summary-details">
@@ -295,8 +317,8 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 
     <div class="summary-card" id="weightSummaryCard">
       <div class="summary-head" data-toggle-card="weightSummaryCard">
-        <div><div class="summary-title">Gewicht</div><div class="muted small" id="weightTrendText">Verlauf & Ziel</div></div>
-        <div style="display:flex;align-items:center;gap:10px"><div><span id="lastWeight" class="summary-value">–</span><span class="metric-unit"> kg</span></div><div class="summary-chevron">⌄</div></div>
+        <div style="min-width:0;flex:1"><div class="summary-title">Gewicht</div><div class="tile-main"><span id="lastWeight">–</span> <span style="font-size:14px">kg</span></div><div class="tile-sub" id="weightTrendText">Verlauf & Ziel</div></div>
+        <div><div class="tile-icon">◉</div><div class="summary-chevron">⌄</div></div>
       </div>
       <div class="summary-progress"><div class="progress"><div id="weightBar" style="width:0%"></div></div><div id="weightBarText" class="muted small" style="margin-top:7px"></div></div>
       <div class="summary-details">
@@ -309,56 +331,76 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="section-title">Apple Health · heute</div>
-    <div class="metrics">
-      <div class="metric-card"><div class="metric-label">⚡ Aktive Energie</div><div><div id="healthActive" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
-      <div class="metric-card"><div class="metric-label">◌ Ruheenergie</div><div><div id="healthResting" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
-      <div class="metric-card"><div class="metric-label">↗ Schritte</div><div><div id="healthSteps" class="metric-value">–</div><div class="metric-unit">Schritte</div></div></div>
-      <div class="metric-card"><div class="metric-label">● Training</div><div><div id="healthExercise" class="metric-value">–</div><div class="metric-unit">Minuten</div></div></div>
+    <div class="summary-card" id="healthSummaryCard">
+      <div class="summary-head" data-toggle-card="healthSummaryCard">
+        <div style="min-width:0;flex:1"><div class="summary-title">Apple Health</div><div class="tile-main" id="healthTileMain">– Schritte</div><div class="tile-sub" id="healthTileSub">Noch keine Daten</div></div>
+        <div><div class="tile-icon">♥</div><div class="summary-chevron">⌄</div></div>
+      </div>
+      <div class="summary-details">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">⚡ Aktive Energie</div><div><div id="healthActive" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
+          <div class="metric-card"><div class="metric-label">◌ Ruheenergie</div><div><div id="healthResting" class="metric-value">–</div><div class="metric-unit">kcal</div></div></div>
+          <div class="metric-card"><div class="metric-label">↗ Schritte</div><div><div id="healthSteps" class="metric-value">–</div><div class="metric-unit">Schritte</div></div></div>
+          <div class="metric-card"><div class="metric-label">● Training</div><div><div id="healthExercise" class="metric-value">–</div><div class="metric-unit">Minuten</div></div></div>
+        </div>
+        <p id="healthUpdated" class="muted small" style="margin-bottom:0"></p>
+        <div id="healthImportStatus" class="health-status">Bereit für Health-Import.</div>
+      </div>
     </div>
-    <p id="healthUpdated" class="muted small" style="margin-bottom:0"></p>
-    <div id="healthImportStatus" class="health-status">Bereit für Health-Import.</div>
-  </div>
 
-  <div class="card">
-    <div class="section-title">Ernährung</div>
-    <div class="range-tabs" id="nutritionRangeTabs"><button class="range-btn active" data-nrange="1">Heute</button><button class="range-btn" data-nrange="7">7 Tage</button><button class="range-btn" data-nrange="30">30 Tage</button></div>
-    <div class="nutrition-grid">
-      <div class="nutri-box"><div class="metric-label">Eiweiß</div><div class="metric-value" id="nutriProtein">–</div><div class="metric-unit" id="nutriProteinTarget">g</div></div>
-      <div class="nutri-box"><div class="metric-label">Ballaststoffe</div><div class="metric-value" id="nutriFiber">–</div><div class="metric-unit">g</div></div>
-      <div class="nutri-box"><div class="metric-label">Kohlenhydrate</div><div class="metric-value" id="nutriCarbs">–</div><div class="metric-unit">g</div></div>
-      <div class="nutri-box"><div class="metric-label">Fett</div><div class="metric-value" id="nutriFat">–</div><div class="metric-unit">g</div></div>
+    <div class="summary-card" id="nutritionSummaryCard">
+      <div class="summary-head" data-toggle-card="nutritionSummaryCard">
+        <div style="min-width:0;flex:1"><div class="summary-title">Ernährung</div><div class="tile-main" id="nutritionTileMain">– g Eiweiß</div><div class="tile-sub" id="nutritionTileSub">Nährwerte heute</div></div>
+        <div><div class="tile-icon">✦</div><div class="summary-chevron">⌄</div></div>
+      </div>
+      <div class="summary-details">
+        <div class="range-tabs" id="nutritionRangeTabs"><button class="range-btn active" data-nrange="1">Heute</button><button class="range-btn" data-nrange="7">7 Tage</button><button class="range-btn" data-nrange="30">30 Tage</button></div>
+        <div class="nutrition-grid">
+          <div class="nutri-box"><div class="metric-label">Eiweiß</div><div class="metric-value" id="nutriProtein">–</div><div class="metric-unit" id="nutriProteinTarget">g</div></div>
+          <div class="nutri-box"><div class="metric-label">Ballaststoffe</div><div class="metric-value" id="nutriFiber">–</div><div class="metric-unit">g</div></div>
+          <div class="nutri-box"><div class="metric-label">Kohlenhydrate</div><div class="metric-value" id="nutriCarbs">–</div><div class="metric-unit">g</div></div>
+          <div class="nutri-box"><div class="metric-label">Fett</div><div class="metric-value" id="nutriFat">–</div><div class="metric-unit">g</div></div>
+        </div>
+        <div class="nutri-line"><span class="muted">Zucker gesamt</span><b id="nutriSugar">–</b></div>
+        <div class="nutri-line"><span class="muted">Salz</span><b id="nutriSalt">–</b></div>
+        <div class="nutri-line"><span class="muted">Gesättigte Fettsäuren</span><b id="nutriSatFat">–</b></div>
+        <div id="nutritionHistory" class="history-grid" style="margin-top:12px"></div>
+        <div id="nutritionAdvice" class="coach-box" style="margin-top:12px"></div>
+        <div id="nutritionCoverage" class="coverage"></div>
+      </div>
     </div>
-    <div class="nutri-line"><span class="muted">Zucker gesamt</span><b id="nutriSugar">–</b></div>
-    <div class="nutri-line"><span class="muted">Salz</span><b id="nutriSalt">–</b></div>
-    <div class="nutri-line"><span class="muted">Gesättigte Fettsäuren</span><b id="nutriSatFat">–</b></div>
-    <div id="nutritionHistory" class="history-grid" style="margin-top:12px"></div>
-    <div id="nutritionAdvice" class="coach-box" style="margin-top:12px"></div>
-    <div id="nutritionCoverage" class="coverage"></div>
-  </div>
 
-  <div class="card">
-    <div class="section-title">Smart Coach</div>
-    <div class="range-tabs" id="coachRangeTabs"><button class="range-btn" data-crange="7">7 Tage</button><button class="range-btn" data-crange="14">14 Tage</button><button class="range-btn active" data-crange="30">30 Tage</button><button class="range-btn" data-crange="90">90 Tage</button></div>
-    <div class="kpi-row">
-      <div class="kpi"><div class="metric-label" id="coachIntakeLabel">Ø Essen</div><div class="v" id="coachIntake7">–</div><div class="metric-unit">kcal/Tag</div></div>
-      <div class="kpi"><div class="metric-label" id="coachBurnLabel">Ø Verbrauch</div><div class="v" id="coachBurn7">–</div><div class="metric-unit">kcal/Tag</div></div>
-      <div class="kpi"><div class="metric-label">Gewichtstrend</div><div class="v" id="coachWeightTrend">–</div><div class="metric-unit">kg/Woche</div></div>
-      <div class="kpi"><div class="metric-label">abgeleiteter Bedarf</div><div class="v" id="coachTdee">–</div><div class="metric-unit">kcal/Tag</div></div>
+    <div class="summary-card" id="coachSummaryCard">
+      <div class="summary-head" data-toggle-card="coachSummaryCard">
+        <div style="min-width:0;flex:1"><div class="summary-title">Smart Coach</div><div class="tile-main" id="coachTileMain">Noch Daten sammeln</div><div class="tile-sub" id="coachTileSub">Analyse aus Essen, Health & Gewicht</div></div>
+        <div><div class="tile-icon">◎</div><div class="summary-chevron">⌄</div></div>
+      </div>
+      <div class="summary-details">
+        <div class="range-tabs" id="coachRangeTabs"><button class="range-btn" data-crange="7">7 Tage</button><button class="range-btn" data-crange="14">14 Tage</button><button class="range-btn active" data-crange="30">30 Tage</button><button class="range-btn" data-crange="90">90 Tage</button></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="metric-label" id="coachIntakeLabel">Ø Essen</div><div class="v" id="coachIntake7">–</div><div class="metric-unit">kcal/Tag</div></div>
+          <div class="kpi"><div class="metric-label" id="coachBurnLabel">Ø Verbrauch</div><div class="v" id="coachBurn7">–</div><div class="metric-unit">kcal/Tag</div></div>
+          <div class="kpi"><div class="metric-label">Gewichtstrend</div><div class="v" id="coachWeightTrend">–</div><div class="metric-unit">kg/Woche</div></div>
+          <div class="kpi"><div class="metric-label">abgeleiteter Bedarf</div><div class="v" id="coachTdee">–</div><div class="metric-unit">kcal/Tag</div></div>
+        </div>
+        <div id="coachAdvice" class="coach-box" style="margin-top:12px"></div>
+        <div class="coverage">Die Analyse läuft lokal im Browser. Je mehr vollständige Tage und Gewichtsmessungen vorhanden sind, desto belastbarer wird sie.</div>
+      </div>
     </div>
-    <div id="coachAdvice" class="coach-box" style="margin-top:12px"></div>
-    <div class="coverage">Die Analyse läuft lokal im Browser. Je mehr vollständige Tage und Gewichtsmessungen vorhanden sind, desto belastbarer wird sie.</div>
-  </div>
 
-  <div class="card">
-    <div class="section-title">Heute</div>
-    <div id="todayEntries"></div>
+    <div class="summary-card" id="diarySummaryCard">
+      <div class="summary-head" data-toggle-card="diarySummaryCard">
+        <div style="min-width:0;flex:1"><div class="summary-title">Tagebuch</div><div class="tile-main" id="diaryTileMain">0 Einträge</div><div class="tile-sub" id="diaryTileSub">Heute</div></div>
+        <div><div class="tile-icon">＋</div><div class="summary-chevron">⌄</div></div>
+      </div>
+      <div class="summary-details">
+        <div id="todayEntries"></div>
+        <button class="secondary dashboard-quick-btn" id="dashboardAddEntry">Eintrag hinzufügen</button>
+      </div>
+    </div>
   </div>
 </section>
-
 <section id="diary" class="view">
   <div class="card">
     <h2>Eintrag hinzufügen</h2>
@@ -1405,6 +1447,8 @@ function renderNutritionRange(){
   const dailyFiber=days===1?n.fiber:n.fiber/divisor;
   const adjusted={...n,protein:dailyProtein,fiber:dailyFiber,salt:n.salt/divisor,satFat:n.satFat/divisor};
   nutritionAdvice.textContent=nutritionAdviceFor({...adjusted},1);
+  if(typeof nutritionTileMain!=="undefined") nutritionTileMain.textContent=n.coverage?`${fmt(dailyProtein,0)} g Eiweiß`:"Nährwerte fehlen";
+  if(typeof nutritionTileSub!=="undefined") nutritionTileSub.textContent=n.coverage?`${fmt(dailyFiber,1)} g Ballaststoffe · ${coveragePct}% Datenabdeckung`:"Noch keine vollständigen Nährwerte";
   if(days===1){nutritionHistory.innerHTML="";return}
   const daily=[];
   const start=isoDaysAgo(days-1);
@@ -1436,6 +1480,8 @@ function renderCoach(){
   else c.push("Für den Gewichtstrend brauche ich mehrere Messungen über mindestens sieben Tage.");
   if(estimatedTdee&&estimatedTdee>1000&&estimatedTdee<5000){const w=avg(healthDailyBurns(d));c.push(`Aus Aufnahme und Gewichtsverlauf ergibt sich grob ein tatsächlicher Tagesbedarf von ${fmt(estimatedTdee,0)} kcal.${w?` Health liegt im Mittel bei ${fmt(w,0)} kcal.`:""}`)}
   coachAdvice.textContent=c.join(" ");
+  if(typeof coachTileMain!=="undefined") coachTileMain.textContent=wt?`${wt.kgPerWeek>0?"+":""}${fmt(wt.kgPerWeek,2)} kg/Woche`:intake.length?`${fmt(avg(intake),0)} kcal Ø`:"Noch Daten sammeln";
+  if(typeof coachTileSub!=="undefined") coachTileSub.textContent=estimatedTdee&&estimatedTdee>1000&&estimatedTdee<5000?`Bedarf ~${fmt(estimatedTdee,0)} kcal/Tag`:burns.length?`Health Ø ${fmt(avg(burns),0)} kcal/Tag`:"Analyse aus Essen, Health & Gewicht";
 }
 function drawWeightChart(){
   if(!weightChart)return;
@@ -1455,18 +1501,19 @@ function renderBodySummary(){
 }
 function renderDashboard(){
   const t=todayISO(),target=Number(state.settings.dailyCalorieTarget||0);const todays=state.diary.filter(x=>x.date===t);const eaten=todays.reduce((s,x)=>s+Number(x.kcal||0),0);
-  todayKcal.textContent=fmt(eaten,0);targetKcal.textContent=fmt(target,0);remainingKcal.textContent=fmt(target-eaten,0);remainingKcal.className="metric-value "+(target-eaten>=0?"good":"bad");const p=target?Math.min(100,eaten/target*100):0;kcalBar.style.width=p+"%";kcalBarText.textContent=`${fmt(eaten,0)} / ${fmt(target,0)} kcal · ${fmt(target-eaten,0)} frei`;
+  todayKcal.textContent=fmt(eaten,0);targetKcal.textContent=fmt(target,0);remainingKcal.textContent=fmt(target-eaten,0);remainingKcal.className="metric-value "+(target-eaten>=0?"good":"bad");const p=target?Math.min(100,eaten/target*100):0;kcalBar.style.width=p+"%";kcalBarText.textContent=`${fmt(target-eaten,0)} kcal frei`;if(typeof calorieTileMain!=="undefined")calorieTileMain.textContent=`${fmt(eaten,0)} / ${fmt(target,0)}`;
   const weights=[...state.weights].sort((a,b)=>b.date.localeCompare(a.date));const last=weights[0]?.weight??Number(state.settings.startWeightKg);lastWeight.textContent=fmt(last,1);const start=Number(state.settings.startWeightKg),goal=Number(state.settings.targetWeightKg);const prog=start===goal?0:Math.max(0,Math.min(100,(start-last)/(start-goal)*100));weightBar.style.width=prog+"%";weightBarText.textContent=`${fmt(start-last,1)} kg von ${fmt(start-goal,1)} kg geschafft`;
   const wt7=weightTrend(14);weightTrendText.textContent=wt7?`${wt7.kgPerWeek>0?"+":""}${fmt(wt7.kgPerWeek,2)} kg/Woche · tippen für Verlauf`:"Tippen für Verlauf & Ziel";
-  todayEntries.innerHTML=todays.length?todays.map(x=>entryCard(x,false)).join(""):'<div class="list-empty">Heute noch nichts eingetragen.</div>';
-  const h=state.healthDays?.[t]||{};healthActive.textContent=h.active!=null?fmt(h.active,0):"–";healthResting.textContent=h.resting!=null?fmt(h.resting,0):"–";healthSteps.textContent=h.steps!=null?fmt(h.steps,0):"–";healthExercise.textContent=h.exercise!=null?fmt(h.exercise,0):"–";const burn=(Number(h.active)||0)+(Number(h.resting)||0);
+  todayEntries.innerHTML=todays.length?todays.map(x=>entryCard(x,false)).join(""):'<div class="list-empty">Heute noch nichts eingetragen.</div>';if(typeof diaryTileMain!=="undefined")diaryTileMain.textContent=`${todays.length} ${todays.length===1?"Eintrag":"Einträge"}`;if(typeof diaryTileSub!=="undefined")diaryTileSub.textContent=`${fmt(eaten,0)} kcal heute`;
+  const h=state.healthDays?.[t]||{};healthActive.textContent=h.active!=null?fmt(h.active,0):"–";healthResting.textContent=h.resting!=null?fmt(h.resting,0):"–";healthSteps.textContent=h.steps!=null?fmt(h.steps,0):"–";healthExercise.textContent=h.exercise!=null?fmt(h.exercise,0):"–";if(typeof healthTileMain!=="undefined")healthTileMain.textContent=h.steps!=null?`${fmt(h.steps,0)} Schritte`:"Noch keine Daten";if(typeof healthTileSub!=="undefined")healthTileSub.textContent=h.active!=null?`${fmt(h.active,0)} aktive kcal${h.exercise!=null?` · ${fmt(h.exercise,0)} Min Training`:""}`:"Health aktualisieren";const burn=(Number(h.active)||0)+(Number(h.resting)||0);
   if(h.active!=null||h.resting!=null){healthBurn.textContent=fmt(burn,0);const balance=eaten-burn;healthBalance.textContent=(balance>0?"+":"")+fmt(balance,0);healthBalance.className="metric-value "+(balance<=0?"good":"bad")}else{healthBurn.textContent="–";healthBalance.textContent="–";healthBalance.className="metric-value"}
   healthUpdated.textContent=h.updatedAt?"Letzte Health-Aktualisierung: "+new Date(h.updatedAt).toLocaleString("de-DE"):"Noch keine Apple-Health-Daten importiert.";
   const lastImport=(state.healthImportLog||[])[0];if(lastImport){const when=new Date(lastImport.at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});healthImportStatus.className="health-status "+(lastImport.status==="ok"?"ok":lastImport.status==="partial"?"warn":"bad");healthImportStatus.textContent=lastImport.status==="ok"?`Health-Import OK · 4/4 Werte · ${when}`:lastImport.status==="partial"?`Health-Import teilweise · ${lastImport.accepted.length}/4 Werte · ${when}`:`Health-Import fehlgeschlagen · ${when}`;const names={active:"Aktiv",resting:"Ruhe",steps:"Schritte",exercise:"Training"};const ok=(lastImport.accepted||[]).map(k=>names[k]).join(", ")||"keine";const bad=(lastImport.rejected||[]).map(k=>names[k]).join(", ");healthDiagnostics.textContent=`Letzter Import: ${lastImport.date} · übernommen: ${ok}${bad?` · verworfen: ${bad}`:""}.`;}else{healthImportStatus.className="health-status";healthImportStatus.textContent="Bereit für Health-Import.";healthDiagnostics.textContent="Noch kein Health-Import protokolliert."}
   renderNutritionRange();renderCoach();renderBodySummary();requestAnimationFrame(drawWeightChart);
 }
 
-document.querySelectorAll('[data-toggle-card]').forEach(el=>el.addEventListener('click',()=>{const card=document.getElementById(el.dataset.toggleCard);card.classList.toggle('open');if(card.id==='weightSummaryCard'&&card.classList.contains('open'))requestAnimationFrame(drawWeightChart)}));
+document.querySelectorAll('[data-toggle-card]').forEach(el=>el.addEventListener('click',()=>{const card=document.getElementById(el.dataset.toggleCard);const willOpen=!card.classList.contains('open');document.querySelectorAll('#dashboard .summary-card.open').forEach(c=>c.classList.remove('open'));if(willOpen)card.classList.add('open');if(card.id==='weightSummaryCard'&&willOpen)requestAnimationFrame(drawWeightChart)}));
+const dashboardAddEntry=document.getElementById('dashboardAddEntry');if(dashboardAddEntry)dashboardAddEntry.addEventListener('click',()=>{document.querySelector('.nav-btn[data-view="diary"]')?.click();});
 document.querySelectorAll('[data-nrange]').forEach(b=>b.addEventListener('click',()=>{nutritionRange=Number(b.dataset.nrange);document.querySelectorAll('[data-nrange]').forEach(x=>x.classList.toggle('active',x===b));renderNutritionRange()}));
 document.querySelectorAll('[data-crange]').forEach(b=>b.addEventListener('click',()=>{coachRange=Number(b.dataset.crange);document.querySelectorAll('[data-crange]').forEach(x=>x.classList.toggle('active',x===b));renderCoach()}));
 document.querySelectorAll('[data-wrange]').forEach(b=>b.addEventListener('click',()=>{weightChartRange=Number(b.dataset.wrange);document.querySelectorAll('[data-wrange]').forEach(x=>x.classList.toggle('active',x===b));drawWeightChart()}));
