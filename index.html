@@ -363,7 +363,6 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 }
 .danger-soft{border-color:rgba(255,105,105,.28)!important;color:#ffabab!important}
 </style>
-
 <style id="v19-extra">
 .more-overview{margin:4px 0 12px}
 .more-overview h2{margin:0 0 4px}
@@ -377,6 +376,14 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 .more-accordion-body{padding:0 10px 10px}
 .more-accordion-body>.card{margin:0 0 10px}
 .more-accordion-body>.card:last-child{margin-bottom:0}
+</style>
+<link href="./manifest.webmanifest" rel="manifest"/><meta content="#07111f" name="theme-color"/><meta content="yes" name="apple-mobile-web-app-capable"/><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<style id="v20-extra">
+.nutri-completeness{display:inline-flex;align-items:center;margin-top:5px;padding:2px 7px;border-radius:999px;
+  border:1px solid rgba(143,162,189,.16);font-size:10px;color:#91a6c0}
+.backup-status{margin:0 0 12px;padding:10px 12px;border-radius:14px;background:rgba(91,156,255,.07);
+  border:1px solid rgba(91,156,255,.16);color:#9fb0c6;font-size:12px;line-height:1.45}
+.backup-status.warn{background:rgba(255,184,76,.08);border-color:rgba(255,184,76,.22);color:#e9c98f}
 </style>
 </head>
 <body>
@@ -676,7 +683,11 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div style="height:8px"></div><button class="secondary" id="rAddIngredient" type="button">Zutat hinzufügen</button>
 <div class="subtle-title">Zutaten</div><div id="rIngredientList"></div>
 <div class="recipe-summary" id="rSummary">Noch keine Zutaten.</div>
-<div class="inline">
+<div class="field" style="margin-top:10px">
+<label>Gekochtes Endgewicht (optional)</label>
+<input id="rCookedWeight" inputmode="decimal" placeholder="z. B. 1840" step="1" type="number"/>
+<div class="piece-hint">Wenn sich das Gewicht beim Kochen verändert, berechnet die App kcal/100 g anhand des fertigen Gerichts.</div>
+</div><div class="inline">
 <div class="field"><label>1 Portion wiegt (optional)</label><input id="rPortionWeight" inputmode="decimal" placeholder="z. B. 420" step="1" type="number"/></div>
 <div class="field"><label>Bezeichnung</label><input id="rPortionLabel" placeholder="Portion" value="Portion"/></div>
 </div>
@@ -755,7 +766,7 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <h2>Daten &amp; Backup</h2>
 <p class="muted">Die Einträge werden automatisch in Chrome auf diesem iPhone gespeichert. Export ist dein zusätzliches Backup.</p>
 <div class="form-grid">
-<button class="secondary" id="exportData">Backup exportieren</button>
+<div class="backup-status" id="backupStatus">Backup-Status wird geladen …</div><button class="secondary" id="exportData">Backup exportieren</button>
 <label class="secondary" for="importFile" style="display:flex;align-items:center;justify-content:center">Backup importieren</label>
 <input accept=".json,application/json" id="importFile" style="display:none" type="file"/>
 <button class="danger" id="resetData">Alle lokalen Daten löschen</button>
@@ -799,7 +810,7 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 </div>
 <div class="piece-hint" id="editDiaryHint" style="margin-top:8px"></div>
 <div class="review-actions">
-<button class="secondary danger-soft" id="editDiaryDelete" type="button">Löschen</button>
+<button class="secondary" id="editDiaryDuplicate" type="button">Duplizieren</button><button class="secondary danger-soft" id="editDiaryDelete" type="button">Löschen</button>
 <button class="primary" id="editDiarySave" type="button">Änderungen speichern</button>
 </div>
 </div>
@@ -940,6 +951,9 @@ const importFile=document.getElementById("importFile");
 const resetData=document.getElementById("resetData");
 const healthImportStatus=document.getElementById("healthImportStatus");
 const healthDiagnostics=document.getElementById("healthDiagnostics");
+const rCookedWeight=document.getElementById("rCookedWeight");
+const editDiaryDuplicate=document.getElementById("editDiaryDuplicate");
+const backupStatus=document.getElementById("backupStatus");
 const diaryEditModal=document.getElementById("diaryEditModal");
 const closeDiaryEdit=document.getElementById("closeDiaryEdit");
 const editDiaryFood=document.getElementById("editDiaryFood");
@@ -1182,7 +1196,7 @@ document.querySelectorAll(".meal-btn").forEach(btn=>btn.addEventListener("click"
 }));
 
 function recipeAsFood(r){
-  const total=Number(r.totalWeight||0);
+  const total=Number(r.cookedWeight||r.totalWeight||0);
   if(!total)return null;
   const kcal100=Number(r.totalKcal||0)/total*100;
   const nutr={};
@@ -1197,16 +1211,38 @@ function allFoods(){return [...state.foods,...state.customFoods,...recipeFoods()
 function cacheExternalFood(food){
   if(!food)return food;
   const key=foodIdentity(food);
-  const exists=state.customFoods.some(x=>foodIdentity(x)===key || (food.barcode && x.barcode===food.barcode));
-  if(!exists){
+  const idx=state.customFoods.findIndex(x=>foodIdentity(x)===key || (food.barcode && x.barcode===food.barcode));
+  if(idx<0){
     state.customFoods.push({...food,category:food.category||"Online gespeichert"});
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  }else{
+    const old=state.customFoods[idx], incoming=food;
+    const oldN=old.nutrition||{}, inN=incoming.nutrition||{};
+    const mergedN={...oldN};
+    for(const k of ["protein","carbs","fat","fiber","sugar","salt","satFat"]){
+      if((mergedN[k]==null || mergedN[k]==="") && inN[k]!=null)mergedN[k]=inN[k];
+    }
+    state.customFoods[idx]={
+      ...old,
+      ...Object.fromEntries(Object.entries(incoming).filter(([k,v])=>v!=null && v!=="")),
+      nutrition:Object.keys(mergedN).length?mergedN:undefined,
+      category:old.category||incoming.category||"Online gespeichert"
+    };
+    food=state.customFoods[idx];
   }
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
   return food;
 }
 function findFoodByBarcode(code){
   return allFoods().find(f=>String(f.barcode||"")===String(code||""))||null;
 }
+
+function nutritionCompleteness(f){
+  const n=nutritionPer100(f)||{};
+  const keys=["protein","carbs","fat","fiber","sugar","salt","satFat"];
+  const count=keys.filter(k=>n[k]!=null && Number.isFinite(Number(n[k]))).length;
+  return {count,total:keys.length,pct:Math.round(count/keys.length*100)};
+}
+
 function foodIdentity(f){return f?.barcode?`barcode:${f.barcode}`:f?.recipeId?`recipe:${f.recipeId}`:`name:${normalizeText(f?.name||"")}`}
 function isFavorite(f){return (state.favorites||[]).includes(foodIdentity(f))}
 let selectedFood = null;
@@ -1242,6 +1278,9 @@ function runDataMigration(){
   if(!Array.isArray(state.recipes))state.recipes=[];
   if(!state.settings.dietPrefs || typeof state.settings.dietPrefs!=="object")state.settings.dietPrefs={gluten:false,lactose:false,nuts:false,vegetarian:false,vegan:false,custom:""};
   if(typeof state.settings.webImportApi!=="string")state.settings.webImportApi="";
+  if(!Number.isInteger(state.schemaVersion))state.schemaVersion=1;
+  if(!("lastBackupAt" in state))state.lastBackupAt=null;
+  state.schemaVersion=2;
   if(Array.isArray(state.diary)){
     state.diary=state.diary.map(x=>({
       ...x,
@@ -1249,7 +1288,7 @@ function runDataMigration(){
       createdAt:typeof x.createdAt==="string"?x.createdAt:null
     }));
   }
-  state.version=19;
+  state.version=20;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
 }
 runDataMigration();
@@ -1665,6 +1704,7 @@ function renderLibraryResults(foods,onlineStart=9999){
       <div class="library-result-name">${esc(f.name)}</div>
       <div class="suggestion-meta">${libraryFoodMeta(f)}</div>
       <div class="library-result-source">${i>=onlineStart?"Online · Open Food Facts":(f.recipe?"Gericht":(f.source||"Im Tracker"))}</div>
+      <div class="nutri-completeness">${(()=>{const c=nutritionCompleteness(f);return `Nährwerte ${c.count}/${c.total}`})()}</div>
       <div class="library-actions">
         <button type="button" class="mini-btn" data-lib-use="${i}">${i>=onlineStart?"Speichern & verwenden":"Im Tagebuch verwenden"}</button>
         <button type="button" class="mini-btn" data-lib-fav="${i}">${isFavorite(f)?"★ Favorit":"☆ Favorit"}</button>
@@ -1972,6 +2012,19 @@ editDiarySave.addEventListener("click",()=>{
   closeDiaryEditModal();
 });
 
+
+editDiaryDuplicate.addEventListener("click",()=>{
+  const x=state.diary.find(e=>e.id===editingDiaryId);
+  if(!x)return;
+  const copy={...x,id:(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),
+    date:editDiaryDate.value||x.date,time:editDiaryTime.value||x.time||"",meal:editDiaryMeal.value||x.meal,
+    createdAt:new Date().toISOString()};
+  state.diary.push(copy);
+  diaryBrowseDateValue=copy.date;
+  saveLocal();
+  closeDiaryEditModal();
+});
+
 editDiaryDelete.addEventListener("click",()=>{
   if(!editingDiaryId)return;
   if(!confirm("Diesen Tagebucheintrag wirklich löschen?"))return;
@@ -2070,16 +2123,18 @@ function renderRecipeBuilder(){
   const kcal100=t.kcal/t.weight*100,n=t.nutrition;
   rSummary.innerHTML=`<b>${fmt(t.weight,0)} g Gesamtgewicht · ${fmt(t.kcal,0)} kcal gesamt</b><br><span class="muted">${fmt(kcal100,0)} kcal/100 g${n.protein!=null?` · EW ${fmt(n.protein/t.weight*100,1)} g`:""}${n.carbs!=null?` · KH ${fmt(n.carbs/t.weight*100,1)} g`:""}${n.fat!=null?` · F ${fmt(n.fat/t.weight*100,1)} g`:""}</span>`;
 }
+rCookedWeight.addEventListener("input",renderRecipeBuilder);
 rSaveRecipe.addEventListener("click",()=>{
   const name=rName.value.trim(),t=recipeTotals(recipeBuilder);
   if(!name||!t.weight){alert("Bitte Namen vergeben und mindestens eine Zutat hinzufügen.");return}
   const portionWeight=Number(rPortionWeight.value||0);
-  const recipe={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),name,ingredients:recipeBuilder.map(x=>({food:x.food,amount:x.amount})),totalWeight:t.weight,totalKcal:t.kcal,totalNutrition:t.nutrition,portionWeight:portionWeight||null,portionLabel:(rPortionLabel.value.trim()||"Portion"),createdAt:new Date().toISOString()};
+  const cookedWeight=Number(rCookedWeight.value||0);
+  const recipe={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),name,ingredients:recipeBuilder.map(x=>({food:x.food,amount:x.amount})),totalWeight:t.weight,cookedWeight:cookedWeight||null,totalKcal:t.kcal,totalNutrition:t.nutrition,portionWeight:portionWeight||null,portionLabel:(rPortionLabel.value.trim()||"Portion"),createdAt:new Date().toISOString()};
   state.recipes.push(recipe);localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
-  rName.value="";rPortionWeight.value="";rPortionLabel.value="Portion";recipeBuilder=[];renderRecipeBuilder();renderRecipes();renderFavorites();renderAll();
+  rName.value="";rCookedWeight.value="";rPortionWeight.value="";rPortionLabel.value="Portion";recipeBuilder=[];renderRecipeBuilder();renderRecipes();renderFavorites();renderAll();
 });
 function renderRecipes(){
-  recipesList.innerHTML=(state.recipes||[]).length?state.recipes.map((r,i)=>{const f=recipeAsFood(r);return `<div class="entry"><div class="entry-top"><div><div class="entry-name">${esc(r.name)}</div><div class="entry-meta">${fmt(r.totalWeight,0)} g · ${fmt(r.totalKcal,0)} kcal gesamt · ${fmt(f.kcal,0)} kcal/100 g${r.portionWeight?` · 1 ${esc(r.portionLabel||"Portion")} = ${fmt(r.portionWeight,0)} g`:""}</div></div></div><div class="recipe-actions"><button class="mini-btn" data-r-use="${i}">Ins Tagebuch</button><button class="mini-btn" data-r-fav="${i}">${isFavorite(f)?"★":"☆"}</button><button class="mini-btn" data-r-delete="${i}">Löschen</button></div></div>`}).join(""):'<div class="list-empty">Noch keine Gerichte gespeichert.</div>';
+  recipesList.innerHTML=(state.recipes||[]).length?state.recipes.map((r,i)=>{const f=recipeAsFood(r);return `<div class="entry"><div class="entry-top"><div><div class="entry-name">${esc(r.name)}</div><div class="entry-meta">${fmt(r.cookedWeight||r.totalWeight,0)} g${r.cookedWeight?` Endgewicht`:""} · ${fmt(r.totalKcal,0)} kcal gesamt · ${fmt(f.kcal,0)} kcal/100 g${r.portionWeight?` · 1 ${esc(r.portionLabel||"Portion")} = ${fmt(r.portionWeight,0)} g`:""}</div></div></div><div class="recipe-actions"><button class="mini-btn" data-r-use="${i}">Ins Tagebuch</button><button class="mini-btn" data-r-fav="${i}">${isFavorite(f)?"★":"☆"}</button><button class="mini-btn" data-r-delete="${i}">Löschen</button></div></div>`}).join(""):'<div class="list-empty">Noch keine Gerichte gespeichert.</div>';
   [...recipesList.querySelectorAll("[data-r-use]")].forEach(b=>b.addEventListener("click",()=>{const f=recipeAsFood(state.recipes[Number(b.dataset.rUse)]);document.querySelector('.nav-btn[data-view="diary"]')?.click();selectFood(f)}));
   [...recipesList.querySelectorAll("[data-r-fav]")].forEach(b=>b.addEventListener("click",()=>{const f=recipeAsFood(state.recipes[Number(b.dataset.rFav)]),key=foodIdentity(f);if(isFavorite(f))state.favorites=state.favorites.filter(x=>x!==key);else state.favorites.push(key);localStorage.setItem(STORAGE_KEY,JSON.stringify(state));renderRecipes();renderFavorites()}));
   [...recipesList.querySelectorAll("[data-r-delete]")].forEach(b=>b.addEventListener("click",()=>{const i=Number(b.dataset.rDelete),r=state.recipes[i];if(!confirm(`Gericht „${r.name}“ löschen?`))return;state.favorites=state.favorites.filter(x=>x!==`recipe:${r.id}`);state.recipes.splice(i,1);saveLocal()}));
@@ -2530,9 +2585,25 @@ document.querySelectorAll('[data-crange]').forEach(b=>b.addEventListener('click'
 document.querySelectorAll('[data-wrange]').forEach(b=>b.addEventListener('click',()=>{weightChartRange=Number(b.dataset.wrange);document.querySelectorAll('[data-wrange]').forEach(x=>x.classList.toggle('active',x===b));drawWeightChart()}));
 window.addEventListener('resize',()=>{if(document.getElementById('weightSummaryCard')?.classList.contains('open'))drawWeightChart()});
 
+function renderBackupStatus(){
+  if(!backupStatus)return;
+  if(!state.lastBackupAt){
+    backupStatus.classList.add("warn");
+    backupStatus.textContent="Noch kein Backup registriert. Für eine langfristige Nutzung empfiehlt sich regelmäßig ein JSON-Backup.";
+    return;
+  }
+  const d=new Date(state.lastBackupAt),days=Math.floor((Date.now()-d.getTime())/86400000);
+  backupStatus.classList.toggle("warn",days>=14);
+  backupStatus.textContent=days>=14
+    ?`Letztes Backup vor ${days} Tagen. Ein neues Backup wäre sinnvoll.`
+    :`Letztes Backup: ${d.toLocaleDateString("de-DE")} · vor ${days} Tag${days===1?"":"en"}.`;
+}
 exportData.addEventListener("click",()=>{
+  state.lastBackupAt=new Date().toISOString();
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  renderBackupStatus();
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kalorientracker-daten.json";a.click();
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`kalorientracker-backup-${todayISO()}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
 importFile.addEventListener("change",async e=>{
@@ -2548,8 +2619,13 @@ resetData.addEventListener("click",()=>{
   if(confirm("Wirklich alle lokalen Daten löschen?")){state=clone(DEFAULT_STATE);saveLocal()}
 });
 
-function renderAll(){renderDiary();renderCustomFoods();renderFavorites();renderRecipes();renderWeight();renderSettings();renderDietPrefs();renderHealthForm();renderDashboard()}
+function renderAll(){renderDiary();renderCustomFoods();renderFavorites();renderRecipes();renderWeight();renderSettings();renderDietPrefs();renderHealthForm();renderDashboard();renderBackupStatus()}
 dDate.value=todayISO();wDate.value=todayISO();dashWeightDate.value=todayISO();diaryBrowseDateValue=todayISO();diaryBrowseDate.value=todayISO();const healthImportResult=importHealthFromUrl();renderAll();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+
 </script>
 </body>
 </html>
