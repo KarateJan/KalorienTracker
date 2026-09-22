@@ -316,13 +316,45 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 @media(max-width:430px){.review-grid{grid-template-columns:1fr}.review-grid .field:first-child{grid-column:auto}.review-actions{grid-template-columns:1fr}}
 
 </style>
-
 <style id="v16-extra">
 .library-results{display:grid;gap:8px;margin-top:10px}
 .library-result{border:1px solid rgba(143,162,189,.16);border-radius:16px;padding:12px;background:rgba(7,17,31,.44)}
 .library-result-name{font-weight:800;overflow-wrap:anywhere}
 .library-result-source{font-size:11px;color:#8fa2bd;margin-top:4px}
 .library-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+</style>
+
+<style id="v17-extra">
+.quick-weight-box{
+  margin-bottom:14px;padding:14px;border:1px solid rgba(32,211,154,.18);
+  border-radius:18px;background:rgba(32,211,154,.055)
+}
+.nutrition-target-note{
+  margin:4px 0 12px;padding:10px 12px;border-radius:14px;
+  background:rgba(91,156,255,.07);border:1px solid rgba(91,156,255,.16);
+  color:#9fb0c6;font-size:12px;line-height:1.45
+}
+.nutrition-goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.nutri-goal-card{
+  border:1px solid rgba(143,162,189,.14);border-radius:16px;
+  padding:12px;background:rgba(7,17,31,.42)
+}
+.nutri-goal-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.nutri-goal-head span{font-size:13px;color:#9dafc7;font-weight:700}
+.nutri-goal-head b{font-size:19px}
+.nutri-goal-sub{font-size:11px;color:#8396b0;margin-top:4px;min-height:28px}
+.mini-progress{height:7px;background:#16243a;border-radius:999px;overflow:hidden;margin-top:7px}
+.mini-progress>div{height:100%;width:0;background:linear-gradient(90deg,#19bd8b,#55dfb2);border-radius:999px}
+.limit-grid{display:grid;gap:8px;margin-top:10px}
+.limit-row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;
+  align-items:center;padding:10px 12px;border:1px solid rgba(143,162,189,.12);
+  border-radius:14px;background:rgba(7,17,31,.34)
+}
+.limit-row span{color:#9dafc7;font-size:13px}
+.limit-row b{font-size:16px}
+.limit-row small{grid-column:1/-1;color:#8396b0}
+@media(max-width:380px){.nutrition-goal-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -364,7 +396,15 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div><div class="tile-icon">◉</div><div class="summary-chevron">⌄</div></div>
 </div>
 <div class="summary-progress"><div class="progress"><div id="weightBar" style="width:0%"></div></div><div class="muted small" id="weightBarText" style="margin-top:7px"></div></div>
-<div class="summary-details">
+<div class="summary-details"><div class="quick-weight-box">
+<div class="section-title" style="margin-bottom:8px">Gewicht eintragen</div>
+<div class="inline">
+<div class="field"><label>Heute</label><input id="dashWeightDate" type="date"/></div>
+<div class="field"><label>Gewicht kg</label><input id="dashWeightValue" inputmode="decimal" placeholder="z. B. 112,4" step="0.1" type="number"/></div>
+</div>
+<button class="primary" id="dashSaveWeight" style="margin-top:10px" type="button">Gewicht speichern</button>
+<div class="coverage">Später kann dieser Wert automatisch aus Apple Health/Eufy kommen. Die Web-App selbst kann Apple Health nicht direkt beschreiben.</div>
+</div>
 <div class="range-tabs" id="weightRangeTabs"><button class="range-btn active" data-wrange="30">30 Tage</button><button class="range-btn" data-wrange="90">90 Tage</button><button class="range-btn" data-wrange="365">1 Jahr</button></div>
 <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
 <div class="body-grid">
@@ -395,21 +435,38 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div style="min-width:0;flex:1"><div class="summary-title">Ernährung</div><div class="tile-main" id="nutritionTileMain">– g Eiweiß</div><div class="tile-sub" id="nutritionTileSub">Nährwerte heute</div></div>
 <div><div class="tile-icon">✦</div><div class="summary-chevron">⌄</div></div>
 </div>
-<div class="summary-details">
-<div class="range-tabs" id="nutritionRangeTabs"><button class="range-btn active" data-nrange="1">Heute</button><button class="range-btn" data-nrange="7">7 Tage</button><button class="range-btn" data-nrange="30">30 Tage</button></div>
-<div class="nutrition-grid">
-<div class="nutri-box"><div class="metric-label">Eiweiß</div><div class="metric-value" id="nutriProtein">–</div><div class="metric-unit" id="nutriProteinTarget">g</div></div>
-<div class="nutri-box"><div class="metric-label">Ballaststoffe</div><div class="metric-value" id="nutriFiber">–</div><div class="metric-unit">g</div></div>
-<div class="nutri-box"><div class="metric-label">Kohlenhydrate</div><div class="metric-value" id="nutriCarbs">–</div><div class="metric-unit">g</div></div>
-<div class="nutri-box"><div class="metric-label">Fett</div><div class="metric-value" id="nutriFat">–</div><div class="metric-unit">g</div></div>
+<div class="summary-details"><div class="range-tabs" id="nutritionRangeTabs"><button class="range-btn active" data-nrange="1">Heute</button><button class="range-btn" data-nrange="7">7 Tage</button><button class="range-btn" data-nrange="30">30 Tage</button></div>
+<div class="nutrition-target-note">
+  Tagesziele werden automatisch aus deinem Kalorienziel und Zielgewicht abgeleitet. Sie sind Orientierungswerte, keine medizinische Vorgabe.
 </div>
-<div class="nutri-line"><span class="muted">Zucker gesamt</span><b id="nutriSugar">–</b></div>
-<div class="nutri-line"><span class="muted">Salz</span><b id="nutriSalt">–</b></div>
-<div class="nutri-line"><span class="muted">Gesättigte Fettsäuren</span><b id="nutriSatFat">–</b></div>
-<div class="history-grid" id="nutritionHistory" style="margin-top:12px"></div>
-<div class="coach-box" id="nutritionAdvice" style="margin-top:12px"></div>
-<div class="coverage" id="nutritionCoverage"></div>
+<div class="nutrition-goal-grid">
+<div class="nutri-goal-card">
+<div class="nutri-goal-head"><span>Eiweiß</span><b id="nutriProtein">–</b></div>
+<div class="nutri-goal-sub" id="nutriProteinTarget">Ziel –</div>
+<div class="mini-progress"><div id="nutriProteinBar"></div></div>
 </div>
+<div class="nutri-goal-card">
+<div class="nutri-goal-head"><span>Ballaststoffe</span><b id="nutriFiber">–</b></div>
+<div class="nutri-goal-sub" id="nutriFiberTarget">Ziel –</div>
+<div class="mini-progress"><div id="nutriFiberBar"></div></div>
+</div>
+<div class="nutri-goal-card">
+<div class="nutri-goal-head"><span>Kohlenhydrate</span><b id="nutriCarbs">–</b></div>
+<div class="nutri-goal-sub" id="nutriCarbsTarget">Orientierung –</div>
+<div class="mini-progress"><div id="nutriCarbsBar"></div></div>
+</div>
+<div class="nutri-goal-card">
+<div class="nutri-goal-head"><span>Fett</span><b id="nutriFat">–</b></div>
+<div class="nutri-goal-sub" id="nutriFatTarget">Orientierung –</div>
+<div class="mini-progress"><div id="nutriFatBar"></div></div>
+</div>
+</div>
+<div class="limit-grid">
+<div class="limit-row"><span>Zucker gesamt</span><b id="nutriSugar">–</b><small id="nutriSugarTarget">Orientierung –</small></div>
+<div class="limit-row"><span>Salz</span><b id="nutriSalt">–</b><small id="nutriSaltTarget">max. –</small></div>
+<div class="limit-row"><span>Gesättigte Fettsäuren</span><b id="nutriSatFat">–</b><small id="nutriSatFatTarget">max. –</small></div>
+</div>
+<div class="history-grid" id="nutritionHistory" style="margin-top:12px"></div><div class="coach-box" id="nutritionAdvice" style="margin-top:12px"></div><div class="coverage" id="nutritionCoverage"></div></div>
 </div>
 <div class="summary-card" id="coachSummaryCard">
 <div class="summary-head" data-toggle-card="coachSummaryCard">
@@ -589,14 +646,6 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <input id="rPhotoInput" type="file"/><input id="rImportUrl"/><button id="rImportUrlBtn" type="button"></button>
 <div id="rOnlineStatus"></div><div id="rOnlineResults"></div><div id="rOcrStatus"></div>
 </div>
-
-
-
-
-
-
-
-
 <div class="inline">
 <div class="field"><label>Menge</label><input id="rAmount" inputmode="decimal" min="0" placeholder="200" step="1" type="number"/></div>
 <div class="field"><label>Einheit</label><input id="rUnit" readonly=""/></div>
@@ -614,7 +663,6 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div class="section-title">Gespeicherte Gerichte</div>
 <div id="recipesList"></div>
 </div></section>
-
 <section class="view" id="more"><div class="card">
 <h2>Körper &amp; Gewicht</h2>
 <p class="muted">Messwerte und Verlauf. Auf dem Startdashboard bleibt die kompakte Gewichtskachel mit Diagramm.</p>
@@ -832,6 +880,19 @@ const importFile=document.getElementById("importFile");
 const resetData=document.getElementById("resetData");
 const healthImportStatus=document.getElementById("healthImportStatus");
 const healthDiagnostics=document.getElementById("healthDiagnostics");
+const dashWeightDate=document.getElementById("dashWeightDate");
+const dashWeightValue=document.getElementById("dashWeightValue");
+const dashSaveWeight=document.getElementById("dashSaveWeight");
+const nutriFiberTarget=document.getElementById("nutriFiberTarget");
+const nutriCarbsTarget=document.getElementById("nutriCarbsTarget");
+const nutriFatTarget=document.getElementById("nutriFatTarget");
+const nutriSugarTarget=document.getElementById("nutriSugarTarget");
+const nutriSaltTarget=document.getElementById("nutriSaltTarget");
+const nutriSatFatTarget=document.getElementById("nutriSatFatTarget");
+const nutriProteinBar=document.getElementById("nutriProteinBar");
+const nutriFiberBar=document.getElementById("nutriFiberBar");
+const nutriCarbsBar=document.getElementById("nutriCarbsBar");
+const nutriFatBar=document.getElementById("nutriFatBar");
 const librarySearch=document.getElementById("librarySearch");
 const libraryClearSearch=document.getElementById("libraryClearSearch");
 const librarySearchStatus=document.getElementById("librarySearchStatus");
@@ -1088,7 +1149,7 @@ function runDataMigration(){
   if(!Array.isArray(state.recipes))state.recipes=[];
   if(!state.settings.dietPrefs || typeof state.settings.dietPrefs!=="object")state.settings.dietPrefs={gluten:false,lactose:false,nuts:false,vegetarian:false,vegan:false,custom:""};
   if(typeof state.settings.webImportApi!=="string")state.settings.webImportApi="";
-  state.version=16;
+  state.version=17;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
 }
 runDataMigration();
@@ -1884,6 +1945,20 @@ function renderCustomFoods(){
 }
 window.delFood=i=>{state.customFoods.splice(i,1);saveLocal()};
 
+
+dashSaveWeight.addEventListener("click",()=>{
+  const date=dashWeightDate.value||todayISO();
+  const value=Number(String(dashWeightValue.value||"").replace(",","."));
+  if(!value || value<30 || value>300){alert("Bitte ein plausibles Gewicht eingeben.");return}
+  const existing=state.weights.find(w=>w.date===date);
+  if(existing)existing.weight=value;
+  else state.weights.push({id:String(Date.now()+Math.random()),date,weight:value});
+  const prev=state.bodyDays?.[date]||{};
+  state.bodyDays[date]={...prev,weight:value,updatedAt:new Date().toISOString(),source:"manual-dashboard"};
+  dashWeightValue.value="";
+  saveLocal();
+});
+
 addWeight.addEventListener("click",()=>{
   const value=Number(wValue.value), bodyFat=Number(wBodyFat.value||0), lean=Number(wLeanMass.value||0), bmi=Number(wBmi.value||0);
   if(!wDate.value||!value){alert("Bitte Datum und Gewicht eintragen.");return}
@@ -2112,10 +2187,33 @@ function entriesForDays(days){
 function dayCountWithEntries(days){
   return new Set(entriesForDays(days).map(x=>x.date)).size;
 }
+
+function nutritionTargets(){
+  const kcal=Math.max(1200,Number(state.settings.dailyCalorieTarget||2000));
+  const goalWeight=Math.max(45,Number(state.settings.targetWeightKg||state.settings.startWeightKg||75));
+  // Practical orientation for an adult weight-loss tracker:
+  // protein based on goal weight; carbohydrate/fat/sugar/saturated fat from energy share.
+  const protein=Math.round(goalWeight*1.4);
+  const fiber=30;
+  const carbsMin=Math.round(kcal*0.45/4);
+  const carbsMax=Math.round(kcal*0.60/4);
+  const fatMin=Math.round(kcal*0.25/9);
+  const fatMax=Math.round(kcal*0.35/9);
+  const sugarMax=Math.round(kcal*0.10/4);
+  const saltMax=6;
+  const satFatMax=Math.round(kcal*0.10/9);
+  return {protein,fiber,carbsMin,carbsMax,fatMin,fatMax,sugarMax,saltMax,satFatMax};
+}
+function setMiniProgress(el,value,target,maxPct=100){
+  if(!el)return;
+  const pct=target>0?Math.max(0,Math.min(maxPct,(Number(value||0)/target)*100)):0;
+  el.style.width=Math.min(100,pct)+"%";
+}
+
 function nutritionAdviceFor(n,days){
   const p=state.settings.dietPrefs||{};
-  const goalWeight=Math.max(45,Number(state.settings.targetWeightKg||state.settings.startWeightKg||75));
-  const proteinGoal=Math.round(goalWeight*1.4);
+  const goals=nutritionTargets();
+  const proteinGoal=goals.protein;
   const factor=Math.max(1,days);
   const advice=[];
   if(n.coverage<0.55)advice.push("Für eine belastbare Bewertung fehlen bei mehreren Einträgen vollständige Nährwerte.");
@@ -2127,11 +2225,11 @@ function nutritionAdviceFor(n,days){
     if(p.lactose)opts=opts.filter(x=>!x.includes("Skyr")&&!x.includes("Quark"));
     advice.push(`Eiweiß liegt eher niedrig. Passend wären z. B. ${opts.slice(0,4).join(", ")}.`);
   }
-  if(n.fiber < 25*factor){
+  if(n.fiber < goals.fiber*0.8*factor){
     const opts=p.gluten?["Kartoffeln","Hülsenfrüchte","Beeren","Gemüse","glutenfreie Haferprodukte"]:["Hülsenfrüchte","Gemüse","Obst","Vollkorn","Nüsse/Samen"];
     advice.push(`Ballaststoffe sind ausbaufähig. Geeignet wären ${opts.join(", ")}.`);
   }
-  if(n.salt>6*factor)advice.push("Salz liegt im erfassten Zeitraum relativ hoch; stark verarbeitete und sehr salzige Produkte eher seltener wählen.");
+  if(n.salt>goals.saltMax*factor)advice.push("Salz liegt im erfassten Zeitraum relativ hoch; stark verarbeitete und sehr salzige Produkte eher seltener wählen.");
   if(p.nuts)advice.push("Nüsse sind in deinen Vorschlägen ausgeschlossen.");
   if(p.custom)advice.push(`Berücksichtigt: ${p.custom}.`);
   if(!advice.length)advice.push("Die erfasste Zusammensetzung wirkt für diesen Zeitraum insgesamt ausgewogen.");
@@ -2143,26 +2241,43 @@ function renderNutritionRange(){
   const n=nutritionTotals(entries);
   const activeDays=days===1?1:Math.max(1,dayCountWithEntries(days));
   const divisor=days===1?1:activeDays;
-  const goalWeight=Math.max(45,Number(state.settings.targetWeightKg||state.settings.startWeightKg||75));
-  const proteinGoal=Math.round(goalWeight*1.4);
+  const goals=nutritionTargets();
   const val=k=>n.coverage?Number(n[k]||0)/divisor:null;
-  nutriProtein.textContent=val("protein")!=null?fmt(val("protein"),0):"–";
-  nutriProteinTarget.textContent=n.coverage?`g/Tag · Orientierung ${proteinGoal} g`:"g";
-  nutriFiber.textContent=val("fiber")!=null?fmt(val("fiber"),1):"–";
-  nutriCarbs.textContent=val("carbs")!=null?fmt(val("carbs"),0):"–";
-  nutriFat.textContent=val("fat")!=null?fmt(val("fat"),0):"–";
-  nutriSugar.textContent=val("sugar")!=null?`${fmt(val("sugar"),1)} g/Tag`:"–";
-  nutriSalt.textContent=val("salt")!=null?`${fmt(val("salt"),2)} g/Tag`:"–";
-  nutriSatFat.textContent=val("satFat")!=null?`${fmt(val("satFat"),1)} g/Tag`:"–";
+  const p=val("protein"), fiber=val("fiber"), carbs=val("carbs"), fat=val("fat"), sugar=val("sugar"), salt=val("salt"), satFat=val("satFat");
+
+  nutriProtein.textContent=p!=null?`${fmt(p,0)} g`:"–";
+  nutriProteinTarget.textContent=`Ziel ca. ${goals.protein} g/Tag`;
+  nutriFiber.textContent=fiber!=null?`${fmt(fiber,1)} g`:"–";
+  nutriFiberTarget.textContent=`Ziel ca. ${goals.fiber} g/Tag`;
+  nutriCarbs.textContent=carbs!=null?`${fmt(carbs,0)} g`:"–";
+  nutriCarbsTarget.textContent=`Orientierung ${goals.carbsMin}–${goals.carbsMax} g/Tag`;
+  nutriFat.textContent=fat!=null?`${fmt(fat,0)} g`:"–";
+  nutriFatTarget.textContent=`Orientierung ${goals.fatMin}–${goals.fatMax} g/Tag`;
+  nutriSugar.textContent=sugar!=null?`${fmt(sugar,1)} g/Tag`:"–";
+  nutriSugarTarget.textContent=`Orientierung höchstens ~${goals.sugarMax} g/Tag`;
+  nutriSalt.textContent=salt!=null?`${fmt(salt,2)} g/Tag`:"–";
+  nutriSaltTarget.textContent=`max. ca. ${fmt(goals.saltMax,0)} g/Tag`;
+  nutriSatFat.textContent=satFat!=null?`${fmt(satFat,1)} g/Tag`:"–";
+  nutriSatFatTarget.textContent=`max. ca. ${goals.satFatMax} g/Tag`;
+
+  setMiniProgress(nutriProteinBar,p,goals.protein);
+  setMiniProgress(nutriFiberBar,fiber,goals.fiber);
+  setMiniProgress(nutriCarbsBar,carbs,goals.carbsMax);
+  setMiniProgress(nutriFatBar,fat,goals.fatMax);
+
   const coveragePct=Math.round(n.coverage*100);
-  nutritionCoverage.textContent=entries.length?`Nährwert-Abdeckung: ca. ${coveragePct}% der erfassten Kalorien · ${days===1?"heute":`${activeDays} erfasste Tage im Zeitraum`}.`:"Für diesen Zeitraum sind noch keine Einträge vorhanden.";
-  const dailyProtein=days===1?n.protein:n.protein/divisor;
-  const dailyFiber=days===1?n.fiber:n.fiber/divisor;
-  const adjusted={...n,protein:dailyProtein,fiber:dailyFiber,salt:n.salt/divisor,satFat:n.satFat/divisor};
-  nutritionAdvice.textContent=nutritionAdviceFor({...adjusted},1);
-  if(typeof nutritionTileMain!=="undefined") nutritionTileMain.textContent=n.coverage?`${fmt(dailyProtein,0)} g Eiweiß`:"Nährwerte fehlen";
-  if(typeof nutritionTileSub!=="undefined") nutritionTileSub.textContent=n.coverage?`${fmt(dailyFiber,1)} g Ballaststoffe · ${coveragePct}% Datenabdeckung`:"Noch keine vollständigen Nährwerte";
+  nutritionCoverage.textContent=entries.length
+    ?`Nährwert-Abdeckung: ca. ${coveragePct}% der erfassten Kalorien · ${days===1?"heute":`${activeDays} erfasste Tage im Zeitraum`}. Je höher die Abdeckung, desto aussagekräftiger die Analyse.`
+    :"Für diesen Zeitraum sind noch keine Einträge vorhanden.";
+
+  const adjusted={...n,protein:p||0,fiber:fiber||0,carbs:carbs||0,fat:fat||0,sugar:sugar||0,salt:salt||0,satFat:satFat||0};
+  nutritionAdvice.textContent=nutritionAdviceFor(adjusted,1);
+
+  if(typeof nutritionTileMain!=="undefined")nutritionTileMain.textContent=n.coverage?`${fmt(p||0,0)} / ${goals.protein} g Eiweiß`:"Nährwerte fehlen";
+  if(typeof nutritionTileSub!=="undefined")nutritionTileSub.textContent=n.coverage?`${fmt(fiber||0,1)} / ${goals.fiber} g Ballaststoffe · ${coveragePct}% Daten`:"Noch keine vollständigen Nährwerte";
+
   if(days===1){nutritionHistory.innerHTML="";return}
+
   const daily=[];
   const start=isoDaysAgo(days-1);
   for(let i=0;i<days;i++){
@@ -2170,9 +2285,11 @@ function renderNutritionRange(){
     const es=(state.diary||[]).filter(x=>x.date===iso);if(!es.length)continue;
     const nn=nutritionTotals(es);daily.push(nn);
   }
-  const proteinGood=daily.filter(x=>x.coverage>.5&&x.protein>=proteinGoal*.8).length;
-  const fiberGood=daily.filter(x=>x.coverage>.5&&x.fiber>=25).length;
-  nutritionHistory.innerHTML=`<div class="history-item"><span class="muted">Eiweiß-Ziel</span><b>${proteinGood}/${daily.length||0}</b><span class="metric-unit">erfasste Tage</span></div><div class="history-item"><span class="muted">Ballaststoffe ≥25 g</span><b>${fiberGood}/${daily.length||0}</b><span class="metric-unit">erfasste Tage</span></div>`;
+  const proteinGood=daily.filter(x=>x.coverage>.5&&x.protein>=goals.protein*.8).length;
+  const fiberGood=daily.filter(x=>x.coverage>.5&&x.fiber>=goals.fiber*.8).length;
+  nutritionHistory.innerHTML=
+    `<div class="history-item"><span class="muted">Eiweiß ≥80 % Ziel</span><b>${proteinGood}/${daily.length||0}</b><span class="metric-unit">erfasste Tage</span></div>`+
+    `<div class="history-item"><span class="muted">Ballaststoffe ≥80 % Ziel</span><b>${fiberGood}/${daily.length||0}</b><span class="metric-unit">erfasste Tage</span></div>`;
 }
 function renderCoach(){
   const d=coachRange;
@@ -2251,7 +2368,7 @@ resetData.addEventListener("click",()=>{
 });
 
 function renderAll(){renderDiary();renderCustomFoods();renderFavorites();renderRecipes();renderWeight();renderSettings();renderDietPrefs();renderHealthForm();renderDashboard()}
-dDate.value=todayISO();wDate.value=todayISO();diaryBrowseDateValue=todayISO();diaryBrowseDate.value=todayISO();const healthImportResult=importHealthFromUrl();renderAll();
+dDate.value=todayISO();wDate.value=todayISO();dashWeightDate.value=todayISO();diaryBrowseDateValue=todayISO();diaryBrowseDate.value=todayISO();const healthImportResult=importHealthFromUrl();renderAll();
 </script>
 </body>
 </html>
