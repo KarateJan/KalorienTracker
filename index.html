@@ -355,7 +355,6 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 .limit-row small{grid-column:1/-1;color:#8396b0}
 @media(max-width:380px){.nutrition-goal-grid{grid-template-columns:1fr}}
 </style>
-
 <style id="v18-extra">
 .entry-time{
   display:inline-flex;align-items:center;gap:4px;padding:2px 7px;margin-left:4px;
@@ -363,6 +362,21 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
   color:#a9bdd8;font-size:11px;font-weight:700
 }
 .danger-soft{border-color:rgba(255,105,105,.28)!important;color:#ffabab!important}
+</style>
+
+<style id="v19-extra">
+.more-overview{margin:4px 0 12px}
+.more-overview h2{margin:0 0 4px}
+.more-accordion{border:1px solid rgba(143,162,189,.15);border-radius:18px;background:rgba(7,17,31,.42);overflow:hidden;margin-bottom:10px;scroll-margin-top:12px}
+.more-accordion-head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 14px;border:0;background:transparent;color:inherit;text-align:left}
+.more-accordion-head>div{display:grid;gap:3px}
+.more-accordion-head strong{font-size:15px}
+.more-accordion-head small{font-size:12px;color:#8fa2bd;font-weight:500}
+.more-chevron{font-size:26px;color:#8fa2bd;transition:transform .18s ease}
+.more-accordion.open .more-chevron{transform:rotate(90deg)}
+.more-accordion-body{padding:0 10px 10px}
+.more-accordion-body>.card{margin:0 0 10px}
+.more-accordion-body>.card:last-child{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -671,7 +685,10 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div class="section-title">Gespeicherte Gerichte</div>
 <div id="recipesList"></div>
 </div></section>
-<section class="view" id="more"><div class="card">
+<section class="view" id="more"><div class="more-overview">
+<h2>Mehr</h2>
+<p class="muted">Alles Weitere kompakt an einem Ort. Tippe einen Bereich an, um ihn zu öffnen.</p>
+</div><div class="more-accordion" data-more-key="body"><button class="more-accordion-head" type="button"><div><strong>Körper &amp; Gewicht</strong><small>Gewicht, Verlauf und Körperwerte</small></div><span class="more-chevron">›</span></button><div class="more-accordion-body hidden"><div class="card">
 <h2>Körper &amp; Gewicht</h2>
 <p class="muted">Messwerte und Verlauf. Auf dem Startdashboard bleibt die kompakte Gewichtskachel mit Diagramm.</p>
 </div><div class="card">
@@ -686,35 +703,7 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div style="height:12px"></div>
 <button class="primary" id="addWeight">Körperdaten speichern</button>
 <div class="coverage">Vorbereitet für Eufy/Apple Health: sobald die Waage ihre Werte in Health schreibt, können Gewicht, Körperfett, fettfreie Masse und BMI automatisch übernommen werden.</div>
-</div><div class="card"><div class="section-title">Verlauf</div><div id="weightList"></div></div>
-<div class="card">
-<h2>Einstellungen</h2>
-<div class="form-grid two">
-<div class="field"><label>Alter</label><input id="sAge" inputmode="numeric" type="number"/></div>
-<div class="field"><label>Geschlecht</label><select id="sSex"><option>Mann</option><option>Frau</option></select></div>
-<div class="field"><label>Größe cm</label><input id="sHeight" inputmode="numeric" type="number"/></div>
-<div class="field"><label>Startgewicht kg</label><input id="sStartWeight" inputmode="decimal" step="0.1" type="number"/></div>
-<div class="field"><label>Zielgewicht kg</label><input id="sTargetWeight" inputmode="decimal" step="0.1" type="number"/></div>
-<div class="field"><label>Kalorienziel / Tag</label><input id="sTargetKcal" inputmode="numeric" type="number"/></div>
-</div>
-<div style="height:12px"></div>
-<button class="primary" id="saveSettings">Einstellungen speichern</button>
-<p class="muted small" id="needs"></p>
-</div>
-<div class="card">
-<h2>Ernährungsprofil</h2>
-<p class="muted">Diese Angaben werden nur lokal gespeichert und bei Ernährungshinweisen berücksichtigt.</p>
-<div class="toggle-grid">
-<label class="toggle-row"><input id="prefGluten" type="checkbox"/><span>Gluten/Weizen meiden</span></label>
-<label class="toggle-row"><input id="prefLactose" type="checkbox"/><span>Laktose meiden</span></label>
-<label class="toggle-row"><input id="prefNuts" type="checkbox"/><span>Nüsse meiden</span></label>
-<label class="toggle-row"><input id="prefVegetarian" type="checkbox"/><span>Vegetarisch</span></label>
-<label class="toggle-row"><input id="prefVegan" type="checkbox"/><span>Vegan</span></label>
-</div>
-<div class="field" style="margin-top:10px"><label>Weitere Einschränkungen / Hinweise</label><textarea id="prefCustom" placeholder="z. B. bestimmte Lebensmittel meiden" rows="3"></textarea></div>
-<div style="height:10px"></div><button class="primary" id="saveDietPrefs">Ernährungsprofil speichern</button>
-</div>
-<div class="card">
+</div><div class="card"><div class="section-title">Verlauf</div><div id="weightList"></div></div></div></div><div class="more-accordion" data-more-key="health"><button class="more-accordion-head" type="button"><div><strong>Apple Health</strong><small>Synchronisation und Gesundheitsdaten</small></div><span class="more-chevron">›</span></button><div class="more-accordion-body hidden"><div class="card">
 <h2>Apple Health</h2>
 <p class="muted">Ein iPhone-Kurzbefehl liest Health-Daten und übergibt sie an diese Seite. Die Werte werden nur lokal in deinem Browser gespeichert.</p>
 <div class="form-grid">
@@ -731,15 +720,38 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 </div>
 <div class="selected-food hidden" id="healthUrlBox" style="margin-top:10px;word-break:break-all"></div>
 <p class="muted small" id="healthDiagnostics" style="margin:12px 2px 0"></p>
+</div></div></div><div class="more-accordion" data-more-key="nutrition"><button class="more-accordion-head" type="button"><div><strong>Ernährungsprofil</strong><small>Unverträglichkeiten und Präferenzen</small></div><span class="more-chevron">›</span></button><div class="more-accordion-body hidden"><div class="card">
+<h2>Ernährungsprofil</h2>
+<p class="muted">Diese Angaben werden nur lokal gespeichert und bei Ernährungshinweisen berücksichtigt.</p>
+<div class="toggle-grid">
+<label class="toggle-row"><input id="prefGluten" type="checkbox"/><span>Gluten/Weizen meiden</span></label>
+<label class="toggle-row"><input id="prefLactose" type="checkbox"/><span>Laktose meiden</span></label>
+<label class="toggle-row"><input id="prefNuts" type="checkbox"/><span>Nüsse meiden</span></label>
+<label class="toggle-row"><input id="prefVegetarian" type="checkbox"/><span>Vegetarisch</span></label>
+<label class="toggle-row"><input id="prefVegan" type="checkbox"/><span>Vegan</span></label>
 </div>
-<div class="card">
+<div class="field" style="margin-top:10px"><label>Weitere Einschränkungen / Hinweise</label><textarea id="prefCustom" placeholder="z. B. bestimmte Lebensmittel meiden" rows="3"></textarea></div>
+<div style="height:10px"></div><button class="primary" id="saveDietPrefs">Ernährungsprofil speichern</button>
+</div></div></div><div class="more-accordion" data-more-key="web"><button class="more-accordion-head" type="button"><div><strong>Web-Import</strong><small>Produktseiten und Cloudflare-Import</small></div><span class="more-chevron">›</span></button><div class="more-accordion-body hidden"><div class="card">
 <h2>Web-Import</h2>
 <p class="muted small">Für den automatischen Import von FDDB und anderen Produktseiten braucht die statische GitHub-Seite einen kleinen Serverless-Proxy. Ohne URL funktionieren Barcode, Open Food Facts, Foto und manuelle Eingabe weiterhin.</p>
 <div class="field"><label>Web-Import API URL (optional)</label><input id="sWebImportApi" inputmode="url" placeholder="https://…workers.dev" type="url"/></div>
 <div style="height:10px"></div>
 <button class="secondary" id="saveWebImportApi">Web-Import URL speichern</button>
+</div></div></div><div class="more-accordion" data-more-key="settings"><button class="more-accordion-head" type="button"><div><strong>Einstellungen</strong><small>Profil, Zielgewicht und Kalorienziel</small></div><span class="more-chevron">›</span></button><div class="more-accordion-body hidden"><div class="card">
+<h2>Einstellungen</h2>
+<div class="form-grid two">
+<div class="field"><label>Alter</label><input id="sAge" inputmode="numeric" type="number"/></div>
+<div class="field"><label>Geschlecht</label><select id="sSex"><option>Mann</option><option>Frau</option></select></div>
+<div class="field"><label>Größe cm</label><input id="sHeight" inputmode="numeric" type="number"/></div>
+<div class="field"><label>Startgewicht kg</label><input id="sStartWeight" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Zielgewicht kg</label><input id="sTargetWeight" inputmode="decimal" step="0.1" type="number"/></div>
+<div class="field"><label>Kalorienziel / Tag</label><input id="sTargetKcal" inputmode="numeric" type="number"/></div>
 </div>
-<div class="card">
+<div style="height:12px"></div>
+<button class="primary" id="saveSettings">Einstellungen speichern</button>
+<p class="muted small" id="needs"></p>
+</div></div></div><div class="more-accordion" data-more-key="backup"><button class="more-accordion-head" type="button"><div><strong>Daten &amp; Backup</strong><small>Export, Import und Datensicherung</small></div><span class="more-chevron">›</span></button><div class="more-accordion-body hidden"><div class="card">
 <h2>Daten &amp; Backup</h2>
 <p class="muted">Die Einträge werden automatisch in Chrome auf diesem iPhone gespeichert. Export ist dein zusätzliches Backup.</p>
 <div class="form-grid">
@@ -748,8 +760,7 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <input accept=".json,application/json" id="importFile" style="display:none" type="file"/>
 <button class="danger" id="resetData">Alle lokalen Daten löschen</button>
 </div>
-</div>
-</section>
+</div></div></div></section>
 </main>
 <div class="review-modal hidden" id="diaryEditModal">
 <div class="modal-sheet">
@@ -1135,6 +1146,28 @@ function switchToView(viewId){
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===viewId));
   window.scrollTo({top:0,behavior:"smooth"});
 }
+
+function initMoreAccordions(){
+  const accs=[...document.querySelectorAll(".more-accordion")];
+  accs.forEach(acc=>{
+    const head=acc.querySelector(".more-accordion-head");
+    const body=acc.querySelector(".more-accordion-body");
+    head.addEventListener("click",()=>{
+      const willOpen=!acc.classList.contains("open");
+      accs.forEach(a=>{
+        a.classList.remove("open");
+        a.querySelector(".more-accordion-body")?.classList.add("hidden");
+      });
+      if(willOpen){
+        acc.classList.add("open");
+        body.classList.remove("hidden");
+        setTimeout(()=>acc.scrollIntoView({behavior:"smooth",block:"start"}),40);
+      }
+    });
+  });
+}
+initMoreAccordions();
+
 document.querySelectorAll(".nav-btn").forEach(btn=>btn.addEventListener("click",()=>{
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
@@ -1216,7 +1249,7 @@ function runDataMigration(){
       createdAt:typeof x.createdAt==="string"?x.createdAt:null
     }));
   }
-  state.version=18;
+  state.version=19;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
 }
 runDataMigration();
