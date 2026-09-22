@@ -323,7 +323,6 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 .library-result-source{font-size:11px;color:#8fa2bd;margin-top:4px}
 .library-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
 </style>
-
 <style id="v17-extra">
 .quick-weight-box{
   margin-bottom:14px;padding:14px;border:1px solid rgba(32,211,154,.18);
@@ -355,6 +354,15 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 .limit-row b{font-size:16px}
 .limit-row small{grid-column:1/-1;color:#8396b0}
 @media(max-width:380px){.nutrition-goal-grid{grid-template-columns:1fr}}
+</style>
+
+<style id="v18-extra">
+.entry-time{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 7px;margin-left:4px;
+  border-radius:999px;background:rgba(91,156,255,.08);border:1px solid rgba(91,156,255,.16);
+  color:#a9bdd8;font-size:11px;font-weight:700
+}
+.danger-soft{border-color:rgba(255,105,105,.28)!important;color:#ffabab!important}
 </style>
 </head>
 <body>
@@ -743,7 +751,48 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 </div>
 </section>
 </main>
-<div class="scan-modal hidden" id="barcodeModal">
+<div class="review-modal hidden" id="diaryEditModal">
+<div class="modal-sheet">
+<div class="modal-head">
+<h3>Tagebucheintrag bearbeiten</h3>
+<button class="icon-btn" id="closeDiaryEdit" type="button">×</button>
+</div>
+<div class="field">
+<label>Lebensmittel / Gericht</label>
+<input id="editDiaryFood" readonly="" type="text"/>
+</div>
+<div class="review-grid" style="margin-top:10px">
+<div class="field">
+<label>Datum</label>
+<input id="editDiaryDate" type="date"/>
+</div>
+<div class="field">
+<label>Uhrzeit</label>
+<input id="editDiaryTime" type="time"/>
+</div>
+<div class="field">
+<label>Mahlzeit</label>
+<select id="editDiaryMeal">
+<option>Frühstück</option>
+<option>Mittagessen</option>
+<option>Abendessen</option>
+<option>Snack</option>
+<option>Getränk</option>
+<option>Sonstiges</option>
+</select>
+</div>
+<div class="field">
+<label id="editDiaryAmountLabel">Menge</label>
+<input id="editDiaryAmount" inputmode="decimal" step="0.1" type="number"/>
+</div>
+</div>
+<div class="piece-hint" id="editDiaryHint" style="margin-top:8px"></div>
+<div class="review-actions">
+<button class="secondary danger-soft" id="editDiaryDelete" type="button">Löschen</button>
+<button class="primary" id="editDiarySave" type="button">Änderungen speichern</button>
+</div>
+</div>
+</div><div class="scan-modal hidden" id="barcodeModal">
 <div class="modal-sheet">
 <div class="modal-head"><h3>Barcode scannen</h3><button class="icon-btn" id="closeBarcodeModal" type="button">×</button></div>
 <div id="barcodeReader"></div>
@@ -880,6 +929,17 @@ const importFile=document.getElementById("importFile");
 const resetData=document.getElementById("resetData");
 const healthImportStatus=document.getElementById("healthImportStatus");
 const healthDiagnostics=document.getElementById("healthDiagnostics");
+const diaryEditModal=document.getElementById("diaryEditModal");
+const closeDiaryEdit=document.getElementById("closeDiaryEdit");
+const editDiaryFood=document.getElementById("editDiaryFood");
+const editDiaryDate=document.getElementById("editDiaryDate");
+const editDiaryTime=document.getElementById("editDiaryTime");
+const editDiaryMeal=document.getElementById("editDiaryMeal");
+const editDiaryAmount=document.getElementById("editDiaryAmount");
+const editDiaryAmountLabel=document.getElementById("editDiaryAmountLabel");
+const editDiaryHint=document.getElementById("editDiaryHint");
+const editDiaryDelete=document.getElementById("editDiaryDelete");
+const editDiarySave=document.getElementById("editDiarySave");
 const dashWeightDate=document.getElementById("dashWeightDate");
 const dashWeightValue=document.getElementById("dashWeightValue");
 const dashSaveWeight=document.getElementById("dashSaveWeight");
@@ -1149,7 +1209,14 @@ function runDataMigration(){
   if(!Array.isArray(state.recipes))state.recipes=[];
   if(!state.settings.dietPrefs || typeof state.settings.dietPrefs!=="object")state.settings.dietPrefs={gluten:false,lactose:false,nuts:false,vegetarian:false,vegan:false,custom:""};
   if(typeof state.settings.webImportApi!=="string")state.settings.webImportApi="";
-  state.version=17;
+  if(Array.isArray(state.diary)){
+    state.diary=state.diary.map(x=>({
+      ...x,
+      time:typeof x.time==="string"?x.time:"",
+      createdAt:typeof x.createdAt==="string"?x.createdAt:null
+    }));
+  }
+  state.version=18;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
 }
 runDataMigration();
@@ -1753,13 +1820,23 @@ document.addEventListener("click",e=>{
 });
 dAmount.addEventListener("input",updatePreview);
 
+
+function currentLocalTime(){
+  const d=new Date();
+  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+function diaryEntryTimeForDate(date){
+  return date===todayISO()?currentLocalTime():"";
+}
+
 addDiary.addEventListener("click",()=>{
   const f=selectedFood,entered=Number(dAmount.value);
   if(!dDate.value||!f||!entered){alert("Bitte Lebensmittel auswählen und Menge eintragen.");return}
   const baseAmount = quantityMode==="piece" ? entered*currentPieceWeight() : entered;
   state.diary.push({
     id:(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),
-    date:dDate.value,meal:selectedMeal,category:f.category||"",food:f.name,
+    date:dDate.value,time:diaryEntryTimeForDate(dDate.value),createdAt:new Date().toISOString(),
+    meal:selectedMeal,category:f.category||"",food:f.name,
     amount:baseAmount,unit:f.unit,kcal100:f.kcal,kcal:calc(f,baseAmount),
     quantityMode:quantityMode,
     quantityCount:quantityMode==="piece"?entered:null,
@@ -1778,12 +1855,19 @@ function entryCard(x,withDelete=true){
   const amountText = x.quantityMode==="piece" && x.quantityCount
     ? `${fmt(x.quantityCount,1).replace(",0","")} ${esc(x.pieceLabel||"Portion")} (≈ ${fmt(x.amount,0)} ${esc(x.unit)})`
     : `${fmt(x.amount,0)} ${esc(x.unit)}`;
+  const timeText=x.time?`<span class="entry-time">🕒 ${esc(x.time)}</span>`:"";
   return `<div class="entry">
     <div class="entry-top">
-      <div><div class="entry-name">${esc(x.food)}</div><div class="entry-meta">${esc(x.meal)} · ${amountText}</div></div>
+      <div>
+        <div class="entry-name">${esc(x.food)}</div>
+        <div class="entry-meta">${esc(x.meal)} · ${amountText} ${timeText}</div>
+      </div>
       <div class="entry-kcal">${fmt(x.kcal,0)} kcal</div>
     </div>
-    ${withDelete?`<div class="entry-actions"><button class="mini-btn" onclick="delDiary('${x.id}')">Löschen</button></div>`:""}
+    ${withDelete?`<div class="entry-actions">
+      <button class="mini-btn" onclick="editDiary('${x.id}')">Bearbeiten</button>
+      <button class="mini-btn" onclick="delDiary('${x.id}')">Löschen</button>
+    </div>`:""}
   </div>`;
 }
 let diaryBrowseDateValue=todayISO();
@@ -1796,7 +1880,11 @@ function shiftISODate(iso,days){
 function renderDiary(){
   const date=diaryBrowseDateValue||todayISO();
   diaryBrowseDate.value=date;
-  const list=state.diary.filter(x=>x.date===date).sort((a,b)=>String(a.meal).localeCompare(String(b.meal),"de"));
+  const list=state.diary.filter(x=>x.date===date).sort((a,b)=>{
+    const ta=String(a.time||"99:99"),tb=String(b.time||"99:99");
+    if(ta!==tb)return ta.localeCompare(tb);
+    return String(a.meal).localeCompare(String(b.meal),"de");
+  });
   const total=list.reduce((s,x)=>s+Number(x.kcal||0),0);
   diaryDaySummary.textContent=list.length?`${list.length} Einträge · ${fmt(total,0)} kcal`:"Keine Einträge an diesem Tag.";
   diaryList.innerHTML=list.length?list.map(x=>entryCard(x,true)).join(""):'<div class="list-empty">Für diesen Tag gibt es noch keine Einträge.</div>';
@@ -1804,7 +1892,67 @@ function renderDiary(){
 diaryBrowseDate.addEventListener("change",()=>{diaryBrowseDateValue=diaryBrowseDate.value||todayISO();renderDiary()});
 diaryPrevDay.addEventListener("click",()=>{diaryBrowseDateValue=shiftISODate(diaryBrowseDateValue,-1);renderDiary()});
 diaryNextDay.addEventListener("click",()=>{diaryBrowseDateValue=shiftISODate(diaryBrowseDateValue,1);renderDiary()});
-window.delDiary=id=>{state.diary=state.diary.filter(x=>x.id!==id);saveLocal()};
+
+let editingDiaryId=null;
+function closeDiaryEditModal(){editingDiaryId=null;diaryEditModal.classList.add("hidden")}
+closeDiaryEdit.addEventListener("click",closeDiaryEditModal);
+
+window.editDiary=id=>{
+  const x=state.diary.find(e=>e.id===id);
+  if(!x)return;
+  editingDiaryId=id;
+  editDiaryFood.value=x.food||"";
+  editDiaryDate.value=x.date||todayISO();
+  editDiaryTime.value=x.time||"";
+  editDiaryMeal.value=x.meal||"Sonstiges";
+
+  if(x.quantityMode==="piece" && x.quantityCount){
+    editDiaryAmount.value=x.quantityCount;
+    editDiaryAmountLabel.textContent=`Menge (${x.pieceLabel||"Portion"})`;
+    editDiaryHint.textContent=`1 ${x.pieceLabel||"Portion"} ≈ ${fmt(x.pieceWeight||0,0)} ${x.unit||"g"}.`;
+  }else{
+    editDiaryAmount.value=Number(x.amount||0);
+    editDiaryAmountLabel.textContent=`Menge (${x.unit||"g"})`;
+    editDiaryHint.textContent="";
+  }
+  diaryEditModal.classList.remove("hidden");
+};
+
+editDiarySave.addEventListener("click",()=>{
+  const x=state.diary.find(e=>e.id===editingDiaryId);
+  if(!x)return;
+  const entered=Number(editDiaryAmount.value);
+  if(!editDiaryDate.value||!entered||entered<=0){alert("Bitte Datum und eine gültige Menge eintragen.");return}
+
+  let baseAmount=entered;
+  if(x.quantityMode==="piece" && x.pieceWeight)baseAmount=entered*Number(x.pieceWeight);
+
+  x.date=editDiaryDate.value;
+  x.time=editDiaryTime.value||"";
+  x.meal=editDiaryMeal.value;
+  x.amount=baseAmount;
+  if(x.quantityMode==="piece")x.quantityCount=entered;
+  x.kcal=Number(x.kcal100||0)*baseAmount/100;
+
+  diaryBrowseDateValue=x.date;
+  saveLocal();
+  closeDiaryEditModal();
+});
+
+editDiaryDelete.addEventListener("click",()=>{
+  if(!editingDiaryId)return;
+  if(!confirm("Diesen Tagebucheintrag wirklich löschen?"))return;
+  state.diary=state.diary.filter(x=>x.id!==editingDiaryId);
+  saveLocal();
+  closeDiaryEditModal();
+});
+
+window.delDiary=id=>{
+  if(!confirm("Diesen Tagebucheintrag wirklich löschen?"))return;
+  state.diary=state.diary.filter(x=>x.id!==id);
+  saveLocal();
+};
+
 
 function optionalNum(el){
   if(!el || el.value==="")return null;
