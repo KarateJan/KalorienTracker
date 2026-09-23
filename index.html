@@ -385,6 +385,9 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
   border:1px solid rgba(91,156,255,.16);color:#9fb0c6;font-size:12px;line-height:1.45}
 .backup-status.warn{background:rgba(255,184,76,.08);border-color:rgba(255,184,76,.22);color:#e9c98f}
 </style>
+<style id="v21-extra">
+.health-body-import{margin-top:8px;padding-top:6px;border-top:1px solid rgba(143,162,189,.10)}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -440,7 +443,7 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div class="body-item"><div class="metric-label">Körperfett</div><div class="v" id="bodyFatNow">–</div><div class="metric-unit">%</div></div>
 <div class="body-item"><div class="metric-label">Fettfreie Masse</div><div class="v" id="leanMassNow">–</div><div class="metric-unit">kg</div></div>
 <div class="body-item"><div class="metric-label">BMI</div><div class="v" id="bmiNow">–</div></div>
-</div>
+<div class="body-item"><div class="metric-label">Gewicht</div><div class="v" id="bodyWeightNow">–</div><div class="metric-unit">kg</div></div></div>
 </div>
 </div>
 <div class="summary-card" id="healthSummaryCard">
@@ -457,7 +460,17 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 </div>
 <p class="muted small" id="healthUpdated" style="margin-bottom:0"></p>
 <div class="health-status" id="healthImportStatus">Bereit für Health-Import.</div>
+<div class="health-body-import" id="healthBodyImportSummary">
+<div class="section-title" style="margin-top:12px">eufy / Körperdaten aus Health</div>
+<div class="body-grid">
+<div class="body-item"><div class="metric-label">Gewicht</div><div class="v" id="healthWeight">–</div><div class="metric-unit">kg</div></div>
+<div class="body-item"><div class="metric-label">Körperfett</div><div class="v" id="healthBodyFat">–</div><div class="metric-unit">%</div></div>
+<div class="body-item"><div class="metric-label">Magere Masse</div><div class="v" id="healthLeanMass">–</div><div class="metric-unit">kg</div></div>
+<div class="body-item"><div class="metric-label">BMI</div><div class="v" id="healthBmi">–</div></div>
+
+
 </div>
+</div></div>
 </div>
 <div class="summary-card" id="nutritionSummaryCard">
 <div class="summary-head" data-toggle-card="nutritionSummaryCard">
@@ -710,6 +723,8 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div class="field"><label>Körperfett % <span class="muted">(optional)</span></label><input id="wBodyFat" inputmode="decimal" step="0.1" type="number"/></div>
 <div class="field"><label>Fettfreie Masse kg <span class="muted">(optional)</span></label><input id="wLeanMass" inputmode="decimal" step="0.1" type="number"/></div>
 <div class="field"><label>BMI <span class="muted">(optional)</span></label><input id="wBmi" inputmode="decimal" step="0.1" type="number"/></div>
+
+
 </div>
 <div style="height:12px"></div>
 <button class="primary" id="addWeight">Körperdaten speichern</button>
@@ -1014,6 +1029,11 @@ const weightTrendText=document.getElementById("weightTrendText");
 const bodyFatNow=document.getElementById("bodyFatNow");
 const leanMassNow=document.getElementById("leanMassNow");
 const bmiNow=document.getElementById("bmiNow");
+const bodyWeightNow=document.getElementById("bodyWeightNow");
+const healthWeight=document.getElementById("healthWeight");
+const healthBodyFat=document.getElementById("healthBodyFat");
+const healthLeanMass=document.getElementById("healthLeanMass");
+const healthBmi=document.getElementById("healthBmi");
 const wBodyFat=document.getElementById("wBodyFat");
 const wLeanMass=document.getElementById("wLeanMass");
 const wBmi=document.getElementById("wBmi");
@@ -1280,7 +1300,7 @@ function runDataMigration(){
   if(typeof state.settings.webImportApi!=="string")state.settings.webImportApi="";
   if(!Number.isInteger(state.schemaVersion))state.schemaVersion=1;
   if(!("lastBackupAt" in state))state.lastBackupAt=null;
-  state.schemaVersion=2;
+  state.schemaVersion=4;
   if(Array.isArray(state.diary)){
     state.diary=state.diary.map(x=>({
       ...x,
@@ -1288,7 +1308,7 @@ function runDataMigration(){
       createdAt:typeof x.createdAt==="string"?x.createdAt:null
     }));
   }
-  state.version=20;
+  state.version=22;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
 }
 runDataMigration();
@@ -2198,15 +2218,18 @@ dashSaveWeight.addEventListener("click",()=>{
 addWeight.addEventListener("click",()=>{
   const value=Number(wValue.value), bodyFat=Number(wBodyFat.value||0), lean=Number(wLeanMass.value||0), bmi=Number(wBmi.value||0);
   if(!wDate.value||!value){alert("Bitte Datum und Gewicht eintragen.");return}
-  state.weights.push({id:String(Date.now()+Math.random()),date:wDate.value,weight:value});
-  state.bodyDays[wDate.value]={weight:value,bodyFat:bodyFat||null,leanMass:lean||null,bmi:bmi||null,updatedAt:new Date().toISOString(),source:"manual"};
+  saveBodyDay(wDate.value,{weight:value,bodyFat:bodyFat||null,leanMass:lean||null,bmi:bmi||null},{source:"manual"});
   wValue.value="";wBodyFat.value="";wLeanMass.value="";wBmi.value="";saveLocal();
 });
 function renderWeight(){
   const list=[...state.weights].sort((a,b)=>b.date.localeCompare(a.date));
   weightList.innerHTML=list.length?list.map(x=>{
     const b=state.bodyDays?.[x.date]||{};
-    const extra=[b.bodyFat!=null?`Körperfett ${fmt(b.bodyFat,1)} %`:"",b.leanMass!=null?`fettfrei ${fmt(b.leanMass,1)} kg`:"",b.bmi!=null?`BMI ${fmt(b.bmi,1)}`:""] .filter(Boolean).join(" · ");
+    const extra=[
+      b.bodyFat!=null?`Körperfett ${fmt(b.bodyFat,1)} %`:"",
+      b.leanMass!=null?`magere Masse ${fmt(b.leanMass,1)} kg`:"",
+      b.bmi!=null?`BMI ${fmt(b.bmi,1)}`:""
+    ].filter(Boolean).join(" · ");
     return `<div class="entry"><div class="entry-top"><div><div class="entry-name">${fmt(x.weight,1)} kg</div><div class="entry-meta">${x.date}${extra?` · ${extra}`:""}</div></div><div><button class="mini-btn" onclick="delWeight('${x.id}')">Löschen</button></div></div></div>`;
   }).join(""):'<div class="list-empty">Noch keine Gewichte.</div>';
 }
@@ -2269,6 +2292,43 @@ function validHealthValue(key,n){
   const max={active:10000,resting:10000,steps:200000,exercise:1440}[key];
   return n<=max;
 }
+
+function validBodyValue(key,n){
+  if(n===null || !Number.isFinite(n))return false;
+  const limits={
+    weight:[30,300],
+    bodyFat:[1,75],
+    leanMass:[20,250],
+    bmi:[10,80]
+  };
+  const lim=limits[key];
+  return lim ? n>=lim[0] && n<=lim[1] : false;
+}
+function saveBodyDay(date,data,meta={}){
+  if(!state.bodyDays || typeof state.bodyDays!=="object")state.bodyDays={};
+  const prev=state.bodyDays[date]||{};
+  const accepted={};
+  const rejected=[];
+  for(const key of ["weight","bodyFat","leanMass","bmi"]){
+    if(validBodyValue(key,data[key]))accepted[key]=data[key];
+    else if(data[key]!==null && data[key]!==undefined)rejected.push(key);
+  }
+  if(!Object.keys(accepted).length)return {ok:false,accepted:[],rejected};
+  state.bodyDays[date]={
+    ...prev,
+    ...accepted,
+    updatedAt:new Date().toISOString(),
+    source:meta.source||prev.source||"health"
+  };
+  if(accepted.weight!=null){
+    const existing=state.weights.find(w=>w.date===date);
+    if(existing)existing.weight=accepted.weight;
+    else state.weights.push({id:String(Date.now()+Math.random()),date,weight:accepted.weight});
+  }
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  return {ok:true,accepted:Object.keys(accepted),rejected};
+}
+
 function normalizeHealthDate(v){
   const raw=String(v||"").trim();
   if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw;
@@ -2320,22 +2380,20 @@ function importHealthFromUrl(){
     steps:parseHealthNumber(p.get("steps")),
     exercise:parseHealthNumber(p.get("exercise"))
   };
-  const body={weight:parseHealthNumber(p.get("weight")),bodyFat:parseHealthNumber(p.get("bodyfat")),leanMass:parseHealthNumber(p.get("lean")),bmi:parseHealthNumber(p.get("bmi"))};
-  if(Object.values(body).some(v=>v!=null)){
-    const prev=state.bodyDays?.[date]||{};
-    state.bodyDays[date]={...prev,...Object.fromEntries(Object.entries(body).filter(([,v])=>v!=null)),updatedAt:new Date().toISOString(),source:"health"};
-    if(body.weight!=null && body.weight>30 && body.weight<300){
-      const existing=state.weights.find(w=>w.date===date);
-      if(existing)existing.weight=body.weight; else state.weights.push({id:String(Date.now()+Math.random()),date,weight:body.weight});
-    }
-  }
+  const body={
+    weight:parseHealthNumber(p.get("weight")),
+    bodyFat:parseHealthNumber(p.get("bodyfat")),
+    leanMass:parseHealthNumber(p.get("lean")),
+    bmi:parseHealthNumber(p.get("bmi"))
+  };
+  const bodyResult=saveBodyDay(date,body,{source:"health-eufy"});
   const result=saveHealthDay(date,data,{source:"shortcut"});
-  sessionStorage.setItem("kalorientracker_last_health_import",JSON.stringify({date,data,result,at:new Date().toISOString()}));
-  if(result.ok){
-    // Remove personal values only after a successful save.
+  sessionStorage.setItem("kalorientracker_last_health_import",JSON.stringify({date,data,body,result,bodyResult,at:new Date().toISOString()}));
+  if(result.ok || bodyResult.ok){
+    // Remove personal values only after at least one successful save.
     history.replaceState({},document.title,location.pathname+location.hash);
   }
-  return {found:true,date,data,...result};
+  return {found:true,date,data,body,bodyResult,...result};
 }
 function renderHealthForm(){
   const h=state.healthDays?.[todayISO()]||{};
@@ -2356,7 +2414,7 @@ saveHealthManual.addEventListener("click",()=>{
 });
 showHealthUrl.addEventListener("click",()=>{
   const base="https://karatejan.github.io/KalorienTracker/";
-  healthUrlBox.textContent=base+"?health=1&date=2026-09-19&active=500&resting=2100&steps=8000&exercise=30&stamp=20260919-080000";
+  healthUrlBox.textContent=base+"?health=1&date=2026-09-23&active=500&resting=2100&steps=8000&exercise=30&weight=112.7&bmi=34.4&bodyfat=36.0&lean=72.2&stamp=20260923-190500";
   healthUrlBox.classList.toggle("hidden");
 });
 
@@ -2562,8 +2620,18 @@ function drawWeightChart(){
   ctx.fillStyle="#65e6bb";pts.forEach((p,i)=>{const x=pad+w*(i/(pts.length-1));const y=pad+(max-Number(p.weight))/(max-min)*h;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill()});
 }
 function renderBodySummary(){
-  const body=Object.entries(state.bodyDays||{}).sort((a,b)=>b[0].localeCompare(a[0]))[0]?.[1]||{};
-  bodyFatNow.textContent=body.bodyFat!=null?fmt(body.bodyFat,1):"–";leanMassNow.textContent=body.leanMass!=null?fmt(body.leanMass,1):"–";bmiNow.textContent=body.bmi!=null?fmt(body.bmi,1):"–";
+  const latest=Object.entries(state.bodyDays||{}).sort((a,b)=>b[0].localeCompare(a[0]))[0];
+  const body=latest?.[1]||{};
+  bodyFatNow.textContent=body.bodyFat!=null?fmt(body.bodyFat,1):"–";
+  leanMassNow.textContent=body.leanMass!=null?fmt(body.leanMass,1):"–";
+  bmiNow.textContent=body.bmi!=null?fmt(body.bmi,1):"–";
+  bodyWeightNow.textContent=body.weight!=null?fmt(body.weight,1):"–";
+
+  const today=state.bodyDays?.[todayISO()]||body;
+  healthWeight.textContent=today.weight!=null?fmt(today.weight,1):"–";
+  healthBodyFat.textContent=today.bodyFat!=null?fmt(today.bodyFat,1):"–";
+  healthLeanMass.textContent=today.leanMass!=null?fmt(today.leanMass,1):"–";
+  healthBmi.textContent=today.bmi!=null?fmt(today.bmi,1):"–";
 }
 function renderDashboard(){
   const t=todayISO(),target=Number(state.settings.dailyCalorieTarget||0);const todays=state.diary.filter(x=>x.date===t);const eaten=todays.reduce((s,x)=>s+Number(x.kcal||0),0);
@@ -2574,7 +2642,13 @@ function renderDashboard(){
   const h=state.healthDays?.[t]||{};healthActive.textContent=h.active!=null?fmt(h.active,0):"–";healthResting.textContent=h.resting!=null?fmt(h.resting,0):"–";healthSteps.textContent=h.steps!=null?fmt(h.steps,0):"–";healthExercise.textContent=h.exercise!=null?fmt(h.exercise,0):"–";if(typeof healthTileMain!=="undefined")healthTileMain.textContent=h.steps!=null?`${fmt(h.steps,0)} Schritte`:"Noch keine Daten";if(typeof healthTileSub!=="undefined")healthTileSub.textContent=h.active!=null?`${fmt(h.active,0)} aktive kcal${h.exercise!=null?` · ${fmt(h.exercise,0)} Min Training`:""}`:"Health aktualisieren";const burn=(Number(h.active)||0)+(Number(h.resting)||0);
   if(h.active!=null||h.resting!=null){healthBurn.textContent=fmt(burn,0);const balance=eaten-burn;healthBalance.textContent=(balance>0?"+":"")+fmt(balance,0);healthBalance.className="metric-value "+(balance<=0?"good":"bad")}else{healthBurn.textContent="–";healthBalance.textContent="–";healthBalance.className="metric-value"}
   healthUpdated.textContent=h.updatedAt?"Letzte Health-Aktualisierung: "+new Date(h.updatedAt).toLocaleString("de-DE"):"Noch keine Apple-Health-Daten importiert.";
-  const lastImport=(state.healthImportLog||[])[0];if(lastImport){const when=new Date(lastImport.at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});healthImportStatus.className="health-status "+(lastImport.status==="ok"?"ok":lastImport.status==="partial"?"warn":"bad");healthImportStatus.textContent=lastImport.status==="ok"?`Health-Import OK · 4/4 Werte · ${when}`:lastImport.status==="partial"?`Health-Import teilweise · ${lastImport.accepted.length}/4 Werte · ${when}`:`Health-Import fehlgeschlagen · ${when}`;const names={active:"Aktiv",resting:"Ruhe",steps:"Schritte",exercise:"Training"};const ok=(lastImport.accepted||[]).map(k=>names[k]).join(", ")||"keine";const bad=(lastImport.rejected||[]).map(k=>names[k]).join(", ");healthDiagnostics.textContent=`Letzter Import: ${lastImport.date} · übernommen: ${ok}${bad?` · verworfen: ${bad}`:""}.`;}else{healthImportStatus.className="health-status";healthImportStatus.textContent="Bereit für Health-Import.";healthDiagnostics.textContent="Noch kein Health-Import protokolliert."}
+  const lastImport=(state.healthImportLog||[])[0];if(lastImport){const when=new Date(lastImport.at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});healthImportStatus.className="health-status "+(lastImport.status==="ok"?"ok":lastImport.status==="partial"?"warn":"bad");const bToday=state.bodyDays?.[lastImport.date]||{};
+    const bodyCount=["weight","bodyFat","leanMass","bmi"].filter(k=>bToday[k]!=null).length;
+    healthImportStatus.textContent=lastImport.status==="ok"
+      ?`Health-Import OK · Aktivität 4/4 · Körper ${bodyCount}/4 · ${when}`
+      :lastImport.status==="partial"
+        ?`Health-Import teilweise · Aktivität ${lastImport.accepted.length}/4 · Körper ${bodyCount}/4 · ${when}`
+        :`Health-Import Aktivität fehlgeschlagen · Körper ${bodyCount}/4 · ${when}`;const names={active:"Aktiv",resting:"Ruhe",steps:"Schritte",exercise:"Training"};const ok=(lastImport.accepted||[]).map(k=>names[k]).join(", ")||"keine";const bad=(lastImport.rejected||[]).map(k=>names[k]).join(", ");healthDiagnostics.textContent=`Letzter Import: ${lastImport.date} · übernommen: ${ok}${bad?` · verworfen: ${bad}`:""}.`;}else{healthImportStatus.className="health-status";healthImportStatus.textContent="Bereit für Health-Import.";healthDiagnostics.textContent="Noch kein Health-Import protokolliert."}
   renderNutritionRange();renderCoach();renderBodySummary();requestAnimationFrame(drawWeightChart);
 }
 
