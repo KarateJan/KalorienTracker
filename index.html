@@ -388,7 +388,6 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <style id="v21-extra">
 .health-body-import{margin-top:8px;padding-top:6px;border-top:1px solid rgba(143,162,189,.10)}
 </style>
-
 <style id="v23-extra">
 .timing-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .timing-bars{display:grid;gap:9px;margin-top:8px}
@@ -399,6 +398,20 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 .timing-row .val{text-align:right;font-size:12px;font-weight:750}
 .foodbase-stub{border-color:rgba(255,184,76,.20)}
 @media(max-width:380px){.timing-kpis{grid-template-columns:1fr}}
+</style>
+
+<style id="v24-extra">
+.coach-food-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.coach-food-panel{background:rgba(255,255,255,.025);border:1px solid rgba(143,162,189,.12);border-radius:14px;padding:10px}
+.coach-food-title{font-size:12px;font-weight:800;color:#c7d5e8;margin-bottom:7px}
+.coach-food-list{display:grid;gap:7px}
+.coach-food-item{font-size:12px;line-height:1.35;padding:8px;border-radius:10px;background:rgba(255,255,255,.025)}
+.coach-food-item b{display:block;font-size:13px;margin-bottom:2px}
+.health-step-diagnostics{margin-top:8px;display:grid;gap:6px}
+.health-diag-row{display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.025)}
+.health-diag-row.warn{border:1px solid rgba(255,184,76,.3)}
+.hidden{display:none!important}
+@media(max-width:520px){.coach-food-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -533,7 +546,20 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div class="kpi"><div class="metric-label">Gewichtstrend</div><div class="v" id="coachWeightTrend">–</div><div class="metric-unit">kg/Woche</div></div>
 <div class="kpi"><div class="metric-label">abgeleiteter Bedarf</div><div class="v" id="coachTdee">–</div><div class="metric-unit">kcal/Tag</div></div>
 </div>
-<div class="coach-box" id="coachAdvice" style="margin-top:12px"></div>
+<div class="coach-box" id="coachAdvice" style="margin-top:12px"></div><div class="coach-food-block" id="coachFoodAnalysis" style="margin-top:12px">
+<div class="section-title">Lebensmittel-Check</div>
+<div class="coach-food-grid">
+<div class="coach-food-panel">
+<div class="coach-food-title">Davon eher weniger</div>
+<div class="coach-food-list" id="coachFoodLess"></div>
+</div>
+<div class="coach-food-panel">
+<div class="coach-food-title">Davon gern häufiger</div>
+<div class="coach-food-list" id="coachFoodMore"></div>
+</div>
+</div>
+<div class="coverage" id="coachFoodCoverage"></div>
+</div>
 <div class="coverage">Die Analyse läuft lokal im Browser. Je mehr vollständige Tage und Gewichtsmessungen vorhanden sind, desto belastbarer wird sie.</div>
 </div>
 </div><div class="summary-card" id="timingSummaryCard">
@@ -701,7 +727,10 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div class="field"><label>Gewicht je Stück (optional)</label><input id="fPieceWeight" inputmode="decimal" placeholder="z.B. 100" step="1" type="number"/></div>
 <div class="field"><label>Stück-Bezeichnung</label><input id="fPieceLabel" placeholder="z.B. Stück, Scheibe"/></div>
 </div>
-<button class="primary" id="addFood">Lebensmittel speichern</button>
+<div class="coverage hidden" id="foodEditStatus" style="margin-bottom:10px"></div><div class="inline-actions" id="foodFormActions">
+<button class="primary" id="saveFoodBtn" type="button">Lebensmittel speichern</button>
+<button class="secondary hidden" id="cancelFoodEdit" type="button">Bearbeiten abbrechen</button>
+</div>
 </div>
 </div><div class="card">
 <div class="section-title">Eigene Lebensmittel</div>
@@ -781,7 +810,7 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <button class="secondary" id="showHealthUrl">Beispiel-Import-Link anzeigen</button>
 </div>
 <div class="selected-food hidden" id="healthUrlBox" style="margin-top:10px;word-break:break-all"></div>
-<p class="muted small" id="healthDiagnostics" style="margin:12px 2px 0"></p>
+<p class="muted small" id="healthDiagnostics" style="margin:12px 2px 0"></p><div class="health-step-diagnostics" id="healthStepDiagnostics"></div>
 </div></div></div><div class="more-accordion" data-more-key="nutrition"><button class="more-accordion-head" type="button"><div><strong>Ernährungsprofil</strong><small>Unverträglichkeiten und Präferenzen</small></div><span class="more-chevron">›</span></button><div class="more-accordion-body hidden"><div class="card">
 <h2>Ernährungsprofil</h2>
 <p class="muted">Diese Angaben werden nur lokal gespeichert und bei Ernährungshinweisen berücksichtigt.</p>
@@ -957,7 +986,9 @@ const fSalt=document.getElementById("fSalt");
 const fSatFat=document.getElementById("fSatFat");
 const fPieceWeight=document.getElementById("fPieceWeight");
 const fPieceLabel=document.getElementById("fPieceLabel");
-const addFood=document.getElementById("addFood");
+const saveFoodBtn=document.getElementById("saveFoodBtn");
+const cancelFoodEdit=document.getElementById("cancelFoodEdit");
+const foodEditStatus=document.getElementById("foodEditStatus");
 const customFoodsList=document.getElementById("customFoodsList");
 const favoriteSelectedFood=document.getElementById("favoriteSelectedFood");
 const favoritesList=document.getElementById("favoritesList");
@@ -1011,6 +1042,7 @@ const importFile=document.getElementById("importFile");
 const resetData=document.getElementById("resetData");
 const healthImportStatus=document.getElementById("healthImportStatus");
 const healthDiagnostics=document.getElementById("healthDiagnostics");
+const healthStepDiagnostics=document.getElementById("healthStepDiagnostics");
 const timingTileMain=document.getElementById("timingTileMain");
 const timingTileSub=document.getElementById("timingTileSub");
 const timingFirst=document.getElementById("timingFirst");
@@ -1117,6 +1149,9 @@ const coachBurn7=document.getElementById("coachBurn7");
 const coachWeightTrend=document.getElementById("coachWeightTrend");
 const coachTdee=document.getElementById("coachTdee");
 const coachAdvice=document.getElementById("coachAdvice");
+const coachFoodLess=document.getElementById("coachFoodLess");
+const coachFoodMore=document.getElementById("coachFoodMore");
+const coachFoodCoverage=document.getElementById("coachFoodCoverage");
 
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function loadLocal(){
@@ -1363,7 +1398,7 @@ function runDataMigration(){
   if(typeof state.settings.webImportApi!=="string")state.settings.webImportApi="";
   if(!Number.isInteger(state.schemaVersion))state.schemaVersion=1;
   if(!("lastBackupAt" in state))state.lastBackupAt=null;
-  state.schemaVersion=5;
+  state.schemaVersion=6;
   if(Array.isArray(state.diary)){
     state.diary=state.diary.map(x=>({
       ...x,
@@ -1371,7 +1406,7 @@ function runDataMigration(){
       createdAt:typeof x.createdAt==="string"?x.createdAt:null
     }));
   }
-  state.version=23;
+  state.version=24;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
 }
 runDataMigration();
@@ -2292,10 +2327,13 @@ fPhotoInput.addEventListener("change",async e=>{
   finally{e.target.value=""}
 });
 
-addFood.addEventListener("click",()=>{
+
+let editingFoodIndex=null;
+
+function readFoodForm(){
   const name=fName.value.trim(),kcal=Number(fKcal.value),portion=Number(fPortion.value||100),unit=fUnit.value;
   const pieceWeight=Number(fPieceWeight.value||0),pieceLabel=fPieceLabel.value.trim();
-  if(!name||!kcal){alert("Bitte Lebensmittel und kcal/100 ausfüllen.");return}
+  if(!name||!kcal)return {error:"Bitte Lebensmittel und kcal/100 ausfüllen."};
   const nutrition={
     protein:optionalNum(fProtein),carbs:optionalNum(fCarbs),fat:optionalNum(fFat),fiber:optionalNum(fFiber),
     sugar:optionalNum(fSugar),salt:optionalNum(fSalt),satFat:optionalNum(fSatFat)
@@ -2304,20 +2342,70 @@ addFood.addEventListener("click",()=>{
   const item={category:"Eigene Lebensmittel",name,kcal,portion,unit};
   if(Object.keys(nutrition).length)item.nutrition=nutrition;
   if(pieceWeight>0){item.pieceWeight=pieceWeight;item.pieceLabel=pieceLabel||"Stück";}
-  state.customFoods.push(item);
-  fName.value="";fKcal.value="";fPortion.value="100";fPieceWeight.value="";fPieceLabel.value="";
+  return {item};
+}
+function clearFoodForm(){
+  editingFoodIndex=null;
+  fName.value="";fKcal.value="";fPortion.value="100";fUnit.value="g";fPieceWeight.value="";fPieceLabel.value="";
   [fProtein,fCarbs,fFat,fFiber,fSugar,fSalt,fSatFat].forEach(el=>el.value="");
+  saveFoodBtn.textContent="Lebensmittel speichern";
+  cancelFoodEdit.classList.add("hidden");
+  foodEditStatus.classList.add("hidden");
+  foodEditStatus.textContent="";
+}
+function fillFoodForm(f,i){
+  editingFoodIndex=i;
+  fName.value=f.name||"";fKcal.value=f.kcal??"";fPortion.value=f.portion??100;fUnit.value=f.unit||"g";
+  const n=nutritionPer100(f)||{};
+  fProtein.value=n.protein??"";fCarbs.value=n.carbs??"";fFat.value=n.fat??"";fFiber.value=n.fiber??"";
+  fSugar.value=n.sugar??"";fSalt.value=n.salt??"";fSatFat.value=n.satFat??"";
+  fPieceWeight.value=f.pieceWeight??"";fPieceLabel.value=f.pieceLabel??"";
+  saveFoodBtn.textContent="Änderungen speichern";
+  cancelFoodEdit.classList.remove("hidden");
+  foodEditStatus.classList.remove("hidden");
+  foodEditStatus.textContent=`Bearbeiten: ${f.name}. Bereits gespeicherte Tagebuch-Einträge bleiben unverändert.`;
+  fName.scrollIntoView({behavior:"smooth",block:"center"});
+  fName.focus();
+}
+saveFoodBtn.addEventListener("click",()=>{
+  const {item,error}=readFoodForm();
+  if(error){alert(error);return}
+  if(editingFoodIndex!=null){
+    const old=state.customFoods[editingFoodIndex]||{};
+    state.customFoods[editingFoodIndex]={
+      ...old,
+      ...item,
+      // technische Herkunftsdaten beibehalten
+      barcode:old.barcode||undefined,
+      source:old.source||item.source,
+      url:old.url||undefined,
+      foodbaseId:old.foodbaseId||undefined
+    };
+  }else{
+    state.customFoods.push(item);
+  }
+  clearFoodForm();
   saveLocal();
 });
+cancelFoodEdit.addEventListener("click",clearFoodForm);
+
 function renderCustomFoods(){
   customFoodsList.innerHTML=state.customFoods.length?state.customFoods.map((f,i)=>{
     const n=nutritionPer100(f);
     const ntext=n?` · EW ${fmt(n.protein||0,1)} · KH ${fmt(n.carbs||0,1)} · F ${fmt(n.fat||0,1)}`:"";
     return `<div class="entry"><div class="entry-top"><div><div class="entry-name">${esc(f.name)}</div><div class="entry-meta">${fmt(f.kcal,1)} kcal/100 · Portion ${fmt(f.portion,0)} ${esc(f.unit)}${ntext}${f.pieceWeight?` · 1 ${esc(f.pieceLabel||'Stück')} ≈ ${fmt(f.pieceWeight,0)} ${esc(f.unit)}`:''}</div></div></div>
-    <div class="entry-actions"><button class="mini-btn" onclick="delFood(${i})">Löschen</button></div></div>`;
+    <div class="entry-actions"><button class="mini-btn" onclick="editFood(${i})">Bearbeiten</button><button class="mini-btn" onclick="delFood(${i})">Löschen</button></div></div>`;
   }).join(""):'<div class="list-empty">Noch keine eigenen Lebensmittel.</div>';
 }
-window.delFood=i=>{state.customFoods.splice(i,1);saveLocal()};
+window.editFood=i=>{const f=state.customFoods[i];if(f)fillFoodForm(f,i)};
+window.delFood=i=>{
+  const f=state.customFoods[i];if(!f)return;
+  if(!confirm(`„${f.name}“ wirklich löschen? Bereits gespeicherte Tagebuch-Einträge bleiben erhalten.`))return;
+  state.customFoods.splice(i,1);
+  if(editingFoodIndex===i)clearFoodForm();
+  else if(editingFoodIndex!=null && editingFoodIndex>i)editingFoodIndex--;
+  saveLocal();
+};
 
 
 dashSaveWeight.addEventListener("click",()=>{
@@ -2472,7 +2560,7 @@ function saveHealthDay(date,data,meta={}){
   }
   const acceptedKeys=Object.keys(accepted);
   if(!acceptedKeys.length){
-    logHealthImport({at:new Date().toISOString(),date,status:"failed",accepted:[],rejected,source:meta.source||"unknown"});
+    logHealthImport({at:new Date().toISOString(),date,status:"failed",accepted:[],rejected,received:{...data},previous:{...prev},source:meta.source||"unknown"});
     localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
     return {ok:false,accepted:[],rejected};
   }
@@ -2484,7 +2572,7 @@ function saveHealthDay(date,data,meta={}){
     updatedAt:new Date().toISOString(),
     lastImportCount:acceptedKeys.length
   };
-  logHealthImport({at:new Date().toISOString(),date,status:acceptedKeys.length===4?"ok":"partial",accepted:acceptedKeys,rejected,source:meta.source||"unknown"});
+  logHealthImport({at:new Date().toISOString(),date,status:acceptedKeys.length===4?"ok":"partial",accepted:acceptedKeys,rejected,received:{...data},previous:{...prev},source:meta.source||"unknown"});
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
   return {ok:true,accepted:acceptedKeys,rejected};
 }
@@ -2513,6 +2601,28 @@ function importHealthFromUrl(){
   }
   return {found:true,date,data,body,bodyResult,...result};
 }
+
+function renderStepDiagnostics(){
+  if(!healthStepDiagnostics)return;
+  const logs=(state.healthImportLog||[]).filter(x=>x.date===todayISO() && x.received && x.received.steps!=null).slice(-5);
+  const current=state.healthDays?.[todayISO()]?.steps;
+  if(!logs.length){
+    healthStepDiagnostics.innerHTML='<div class="health-diag-row"><span>Schritte</span><b>Noch kein URL-Import mit Diagnosewert</b></div>';
+    return;
+  }
+  const last=logs[logs.length-1],received=Number(last.received.steps),prev=last.previous?.steps!=null?Number(last.previous.steps):null;
+  const delta=prev!=null?received-prev:null;
+  const suspicious=delta!=null && (delta<0 || (Math.abs(delta)>2500 && Math.abs(delta)>Math.max(1000,Math.abs(prev)*0.5)));
+  const when=new Date(last.at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+  const rows=[
+    `<div class="health-diag-row ${suspicious?"warn":""}"><span>Vom Kurzbefehl empfangen</span><b>${fmt(received,0)} Schritte · ${when}</b></div>`,
+    `<div class="health-diag-row"><span>Im Tracker gespeichert</span><b>${current!=null?fmt(current,0):"–"} Schritte</b></div>`
+  ];
+  if(prev!=null)rows.push(`<div class="health-diag-row ${suspicious?"warn":""}"><span>Änderung zum vorherigen Import</span><b>${delta>=0?"+":""}${fmt(delta,0)}</b></div>`);
+  if(suspicious)rows.push('<div class="health-diag-row warn"><span>Hinweis</span><b>Ungewöhnlicher Sprung – Kurzbefehlswert prüfen</b></div>');
+  healthStepDiagnostics.innerHTML=rows.join("");
+}
+
 function renderHealthForm(){
   const h=state.healthDays?.[todayISO()]||{};
   hActive.value=h.active??"";
@@ -2790,6 +2900,77 @@ function renderTimingAnalysis(){
   timingTileSub.textContent=a.first!=null&&a.last!=null?`${minutesToTime(a.first)}–${minutesToTime(a.last)} · Ø Essensfenster ${fmt(a.window,1)} h`:"Wann und wie viel du isst";
 }
 
+
+function foodCoachAnalysis(days){
+  const start=isoDaysAgo(days-1);
+  const entries=(state.diary||[]).filter(x=>x.date>=start&&x.date<=todayISO());
+  const map=new Map();
+  let totalKcal=0,coveredKcal=0;
+  for(const x of entries){
+    const kcal=Number(x.kcal||0); totalKcal+=kcal;
+    const key=normalizeText(x.food||"");
+    if(!key)continue;
+    const row=map.get(key)||{name:x.food,kcal:0,count:0,amount:0,protein:0,fiber:0,sugar:0,salt:0,satFat:0,nutrKcal:0,nutrEntries:0};
+    row.kcal+=kcal;row.count++;row.amount+=Number(x.amount||0);
+    const n=explicitNutrition(x) || GENERIC_NUTRITION[key] || null;
+    if(n){
+      coveredKcal+=kcal;row.nutrKcal+=kcal;row.nutrEntries++;
+      const factor=Number(x.amount||0)/100;
+      for(const k of ["protein","fiber","sugar","salt","satFat"]){
+        const v=finiteOrNull(n[k]); if(v!=null)row[k]+=v*factor;
+      }
+    }
+    map.set(key,row);
+  }
+  const foods=[...map.values()].filter(r=>r.count>=2 || r.kcal>=250);
+  for(const r of foods){
+    const per100kcal=k=>r.kcal>0?r[k]/r.kcal*100:0;
+    r.proteinDensity=per100kcal("protein");
+    r.fiberDensity=per100kcal("fiber");
+    r.sugarDensity=per100kcal("sugar");
+    r.satFatDensity=per100kcal("satFat");
+    r.saltDensity=per100kcal("salt");
+    let concern=0,reasons=[];
+    if(r.nutrEntries){
+      if(r.sugarDensity>=5){concern+=2;reasons.push("viel Zucker")}
+      if(r.satFatDensity>=1.5){concern+=2;reasons.push("viel gesättigtes Fett")}
+      if(r.saltDensity>=0.35){concern+=2;reasons.push("viel Salz")}
+      if(r.proteinDensity<2 && r.fiberDensity<1){concern+=1;reasons.push("wenig Eiweiß/Ballaststoffe")}
+    }
+    const kcalImpact=Math.min(4,r.kcal/400);
+    r.lessScore=concern+kcalImpact+(r.count>=4?1:0);
+    r.lessReasons=reasons;
+    let positive=0,posReasons=[];
+    if(r.nutrEntries){
+      if(r.proteinDensity>=6){positive+=3;posReasons.push("eiweißreich")}
+      else if(r.proteinDensity>=4){positive+=2;posReasons.push("gute Eiweißdichte")}
+      if(r.fiberDensity>=2){positive+=2;posReasons.push("ballaststoffreich")}
+      else if(r.fiberDensity>=1.2){positive+=1;posReasons.push("liefert Ballaststoffe")}
+      if(r.sugarDensity<2.5 && r.satFatDensity<1){positive+=1}
+    }
+    r.moreScore=positive+Math.min(2,r.count/3);
+    r.moreReasons=posReasons;
+  }
+  const less=foods.filter(r=>r.nutrEntries && r.lessScore>=4).sort((a,b)=>b.lessScore-a.lessScore || b.kcal-a.kcal).slice(0,3);
+  const lessKeys=new Set(less.map(x=>normalizeText(x.name)));
+  const more=foods.filter(r=>r.nutrEntries && r.moreScore>=4 && !lessKeys.has(normalizeText(r.name))).sort((a,b)=>b.moreScore-a.moreScore || b.count-a.count).slice(0,3);
+  return {entries,totalKcal,coveredKcal,coverage:totalKcal?coveredKcal/totalKcal:0,less,more};
+}
+function renderFoodCoach(days){
+  if(!coachFoodLess||!coachFoodMore||!coachFoodCoverage)return;
+  const a=foodCoachAnalysis(days);
+  const fmtItem=(r,type)=>{
+    const reason=(type==="less"?r.lessReasons:r.moreReasons).slice(0,2).join(", ");
+    const impact=`${r.count}× · ${fmt(r.kcal,0)} kcal im Zeitraum`;
+    return `<div class="coach-food-item"><b>${esc(r.name)}</b>${reason?`${esc(reason)} · `:""}${impact}</div>`;
+  };
+  coachFoodLess.innerHTML=a.less.length?a.less.map(r=>fmtItem(r,"less")).join(""):'<div class="muted small">Aktuell kein klarer Hebel mit ausreichend Nährwertdaten.</div>';
+  coachFoodMore.innerHTML=a.more.length?a.more.map(r=>fmtItem(r,"more")).join(""):'<div class="muted small">Noch nicht genug passende Lebensmittel mit vollständigen Nährwerten.</div>';
+  coachFoodCoverage.textContent=a.totalKcal
+    ?`Lebensmittelbewertung basiert auf ${fmt(a.coverage*100,0)} % der erfassten Kalorien mit verwertbaren Nährwertdaten.`
+    :"Noch keine Tagebuchdaten im gewählten Zeitraum.";
+}
+
 function renderCoach(){
   const d=coachRange;
   const intake=diaryDailyTotals(d), burns=healthDailyBurns(d), wt=weightTrend(d);
@@ -2814,20 +2995,66 @@ function renderCoach(){
     if(largest)c.push(`Zeitmuster: ${fmt(largest[1]/ta.totalKcal*100,0)} % der zeitlich erfassten Kalorien liegen ${largest[0].toLowerCase()}.`);
   }
   coachAdvice.textContent=c.join(" ");
+  renderFoodCoach(d);
   if(typeof coachTileMain!=="undefined") coachTileMain.textContent=wt?`${wt.kgPerWeek>0?"+":""}${fmt(wt.kgPerWeek,2)} kg/Woche`:intake.length?`${fmt(avg(intake),0)} kcal Ø`:"Noch Daten sammeln";
   if(typeof coachTileSub!=="undefined") coachTileSub.textContent=estimatedTdee&&estimatedTdee>1000&&estimatedTdee<5000?`Bedarf ~${fmt(estimatedTdee,0)} kcal/Tag`:burns.length?`Health Ø ${fmt(avg(burns),0)} kcal/Tag`:"Analyse aus Essen, Health & Gewicht";
 }
 function drawWeightChart(){
   if(!weightChart)return;
-  const ctx=weightChart.getContext("2d"), rect=weightChart.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
-  weightChart.width=Math.max(1,Math.floor(rect.width*dpr));weightChart.height=Math.max(1,Math.floor(rect.height*dpr));ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rect.width,rect.height);
-  const start=isoDaysAgo(weightChartRange-1);const pts=(state.weights||[]).filter(w=>w.date>=start&&w.date<=todayISO()).sort((a,b)=>a.date.localeCompare(b.date));
-  if(pts.length<2){ctx.fillStyle="#8fa2bd";ctx.font="13px -apple-system";ctx.fillText("Noch zu wenige Messungen für ein Diagramm.",10,28);return}
-  const vals=pts.map(p=>Number(p.weight));const goal=Number(state.settings.targetWeightKg||0);let min=Math.min(...vals,goal||Infinity),max=Math.max(...vals,goal||-Infinity);if(max-min<2){max+=1;min-=1}const pad=18,w=rect.width-pad*2,h=rect.height-pad*2;
-  ctx.strokeStyle="rgba(143,162,189,.18)";ctx.lineWidth=1;for(let i=0;i<4;i++){const y=pad+h*i/3;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(pad+w,y);ctx.stroke()}
-  if(goal){const gy=pad+(max-goal)/(max-min)*h;ctx.strokeStyle="rgba(32,211,154,.5)";ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(pad,gy);ctx.lineTo(pad+w,gy);ctx.stroke();ctx.setLineDash([])}
-  ctx.strokeStyle="#65e6bb";ctx.lineWidth=2.5;ctx.beginPath();pts.forEach((p,i)=>{const x=pad+w*(i/(pts.length-1));const y=pad+(max-Number(p.weight))/(max-min)*h;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();
-  ctx.fillStyle="#65e6bb";pts.forEach((p,i)=>{const x=pad+w*(i/(pts.length-1));const y=pad+(max-Number(p.weight))/(max-min)*h;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill()});
+  const ctx=weightChart.getContext("2d"),rect=weightChart.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  weightChart.width=Math.max(1,Math.floor(rect.width*dpr));weightChart.height=Math.max(1,Math.floor(rect.height*dpr));
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rect.width,rect.height);
+  const start=isoDaysAgo(weightChartRange-1);
+  const pts=(state.weights||[]).filter(w=>w.date>=start&&w.date<=todayISO())
+    .map(w=>({...w,weight:Number(w.weight)})).filter(p=>Number.isFinite(p.weight))
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  if(pts.length<2){
+    ctx.fillStyle="#8fa2bd";ctx.font="13px -apple-system";
+    ctx.fillText("Noch zu wenige Messungen für ein Diagramm.",10,28);return;
+  }
+  const goal=Number(state.settings.targetWeightKg||0);
+  const trend=pts.map((p,i)=>{
+    const pd=new Date(p.date+"T12:00:00");
+    const vals=pts.filter(q=>{
+      const qd=new Date(q.date+"T12:00:00");
+      const diff=(pd-qd)/86400000;
+      return diff>=0&&diff<=6;
+    }).map(q=>q.weight);
+    return {...p,trend:vals.length?avg(vals):p.weight};
+  });
+  const vals=[...pts.map(p=>p.weight),...trend.map(p=>p.trend)];
+  let min=Math.min(...vals,goal||Infinity),max=Math.max(...vals,goal||-Infinity);
+  if(max-min<2){max+=1;min-=1}
+  const left=50,right=12,top=18,bottom=24,w=rect.width-left-right,h=rect.height-top-bottom;
+  ctx.font="11px -apple-system";ctx.textBaseline="middle";
+  for(let i=0;i<4;i++){
+    const y=top+h*i/3;
+    const value=max-(max-min)*i/3;
+    ctx.strokeStyle="rgba(143,162,189,.18)";ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(left+w,y);ctx.stroke();
+    ctx.fillStyle="#8fa2bd";ctx.textAlign="right";
+    ctx.fillText(`${fmt(value,1)} kg`,left-7,y);
+  }
+  if(goal){
+    const gy=top+(max-goal)/(max-min)*h;
+    ctx.strokeStyle="rgba(32,211,154,.45)";ctx.setLineDash([5,5]);
+    ctx.beginPath();ctx.moveTo(left,gy);ctx.lineTo(left+w,gy);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle="#8fa2bd";ctx.textAlign="left";ctx.fillText("Ziel",left+5,Math.max(top+7,gy-8));
+  }
+  const xy=(p,i,val)=>({
+    x:left+w*(i/(pts.length-1)),
+    y:top+(max-val)/(max-min)*h
+  });
+  // Einzelmessungen
+  ctx.strokeStyle="#65e6bb";ctx.lineWidth=2;ctx.beginPath();
+  pts.forEach((p,i)=>{const q=xy(p,i,p.weight);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});ctx.stroke();
+  ctx.fillStyle="#65e6bb";
+  pts.forEach((p,i)=>{const q=xy(p,i,p.weight);ctx.beginPath();ctx.arc(q.x,q.y,3,0,Math.PI*2);ctx.fill()});
+  // 7-Tage-Trend
+  ctx.strokeStyle="rgba(101,156,255,.95)";ctx.lineWidth=2.5;ctx.setLineDash([6,4]);ctx.beginPath();
+  trend.forEach((p,i)=>{const q=xy(p,i,p.trend);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle="#9dafc7";ctx.textAlign="left";ctx.textBaseline="alphabetic";
+  ctx.fillText("— Gewicht   - - 7-Tage-Trend",left,rect.height-5);
 }
 function renderBodySummary(){
   const latest=Object.entries(state.bodyDays||{}).sort((a,b)=>b[0].localeCompare(a[0]))[0];
@@ -2859,6 +3086,7 @@ function renderDashboard(){
       :lastImport.status==="partial"
         ?`Health-Import teilweise · Aktivität ${lastImport.accepted.length}/4 · Körper ${bodyCount}/4 · ${when}`
         :`Health-Import Aktivität fehlgeschlagen · Körper ${bodyCount}/4 · ${when}`;const names={active:"Aktiv",resting:"Ruhe",steps:"Schritte",exercise:"Training"};const ok=(lastImport.accepted||[]).map(k=>names[k]).join(", ")||"keine";const bad=(lastImport.rejected||[]).map(k=>names[k]).join(", ");healthDiagnostics.textContent=`Letzter Import: ${lastImport.date} · übernommen: ${ok}${bad?` · verworfen: ${bad}`:""}.`;}else{healthImportStatus.className="health-status";healthImportStatus.textContent="Bereit für Health-Import.";healthDiagnostics.textContent="Noch kein Health-Import protokolliert."}
+  renderStepDiagnostics();
   renderNutritionRange();renderCoach();renderTimingAnalysis();renderBodySummary();requestAnimationFrame(drawWeightChart);
 }
 
