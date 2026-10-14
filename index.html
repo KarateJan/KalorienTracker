@@ -763,8 +763,9 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 </div>
 </div>
 </div><div class="card">
-<div class="section-title">Meine Lebensmittel</div>
-<p class="muted small">Hier landen Produkte, die du ausdrücklich aufnimmst. Das Aufnehmen verwendet sie <b>nicht</b> automatisch im Tagebuch.</p>
+<div class="section-title">Aufgenommene Lebensmittel</div>
+<p class="muted small">Hier stehen Lebensmittel, die du ausdrücklich aufgenommen hast. <b>Aufnehmen</b> und <b>Verwenden</b> sind getrennt.</p>
+<div class="coverage" id="foodLibraryCount"></div>
 <div id="customFoodsList"></div>
 </div></section><section class="view" id="recipes"><div class="card">
 <h2>Kochbuch</h2>
@@ -1047,6 +1048,7 @@ const saveFoodBtn=document.getElementById("saveFoodBtn");
 const cancelFoodEdit=document.getElementById("cancelFoodEdit");
 const foodEditStatus=document.getElementById("foodEditStatus");
 const customFoodsList=document.getElementById("customFoodsList");
+const foodLibraryCount=document.getElementById("foodLibraryCount");
 const favoriteSelectedFood=document.getElementById("favoriteSelectedFood");
 const favoritesList=document.getElementById("favoritesList");
 const rName=document.getElementById("rName");
@@ -1469,6 +1471,19 @@ function mergedDefaultFoods(savedFoods){
   return [...map.values()];
 }
 function runDataMigration(){
+  // Nie persönliche Daten durch eine neue Standardstruktur ersetzen.
+  // Alte/alternative Importcontainer werden zusätzlich in die persönliche Bibliothek übernommen.
+  if(!Array.isArray(state.foods))state.foods=[];
+  if(!Array.isArray(state.customFoods))state.customFoods=[];
+  for(const key of ["externalFoods","externalFoodCache","cachedFoods"]){
+    if(Array.isArray(state[key])){
+      for(const f of state[key]){
+        if(f && f.name && !state.customFoods.some(x=>foodIdentity(x)===foodIdentity(f))){
+          state.customFoods.push({...f,category:f.category||"Importiert"});
+        }
+      }
+    }
+  }
   state.foods=mergedDefaultFoods(state.foods);
   if(!Array.isArray(state.customFoods))state.customFoods=[];
   if(!Array.isArray(state.diary))state.diary=[];
@@ -1984,7 +1999,15 @@ function renderLibraryResults(foods,onlineStart=9999){
 async function renderLibrarySearch(){
   const q=librarySearch.value.trim();
   libraryClearSearch.classList.toggle("hidden",!q);
-  if(!q){libraryResults.innerHTML="";librarySearchStatus.textContent="Lokale Treffer erscheinen sofort. Open Food Facts und FoodBase werden automatisch ergänzt.";return}
+  if(!q){
+    const usage=usageStats();
+    const local=[...state.foods,...state.customFoods].filter(f=>f&&!f.recipeId);
+    const seen=new Set();
+    const popular=local.map(f=>({f,score:(isFavorite(f)?100000:0)+(usage.stats.get(normalizeText(f.name))?.count||0)*1000})).sort((a,b)=>b.score-a.score||a.f.name.localeCompare(b.f.name,"de")).map(x=>x.f).filter(f=>{const k=foodIdentity(f);if(seen.has(k))return false;seen.add(k);return true}).slice(0,16);
+    renderLibraryResults(popular);
+    librarySearchStatus.textContent=`${state.foods.length + state.customFoods.length} Lebensmittel im lokalen Bestand · Suche zeigt die Treffer und ergänzt online.`;
+    return;
+  }
   const seq=++librarySearchSeq;
   const local=searchFoods(q).filter(f=>!f.recipeId).slice(0,12);
   renderLibraryResults(local);
@@ -2612,6 +2635,7 @@ saveFoodBtn.addEventListener("click",()=>{
 cancelFoodEdit.addEventListener("click",clearFoodForm);
 
 function renderCustomFoods(){
+  if(foodLibraryCount)foodLibraryCount.textContent=`${state.foods.length} Standard-Lebensmittel · ${state.customFoods.length} aufgenommene/eigene Lebensmittel`;
   customFoodsList.innerHTML=state.customFoods.length?state.customFoods.map((f,i)=>{
     const n=completeNutrition(f);
     const ntext=` · Nährwerte 7/7 · EW ${fmt(n.protein,1)} · KH ${fmt(n.carbs,1)} · F ${fmt(n.fat,1)}`;
