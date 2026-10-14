@@ -355,6 +355,14 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 .limit-row small{grid-column:1/-1;color:#8396b0}
 @media(max-width:380px){.nutrition-goal-grid{grid-template-columns:1fr}}
 </style>
+<style id="v29-extra">
+.glossary-search{margin:10px 0 14px}
+.glossary-letter{font-size:12px;font-weight:900;color:#6fe1bb;letter-spacing:.08em;margin:16px 2px 7px;text-transform:uppercase}
+.glossary-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid rgba(143,162,189,.10)}
+.glossary-main{min-width:0}.glossary-name{font-weight:800;overflow-wrap:anywhere}.glossary-meta{font-size:11px;color:#8fa2bd;margin-top:4px;line-height:1.4}.glossary-note{font-size:12px;color:#a9bdd8;margin-top:5px;white-space:pre-wrap;overflow-wrap:anywhere}.glossary-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0}
+.scan-intro{padding:12px 14px;border-radius:16px;background:rgba(32,211,154,.055);border:1px solid rgba(32,211,154,.16);margin-top:10px}
+.menu-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid rgba(143,162,189,.14);border-radius:18px;background:rgba(7,17,31,.34);cursor:pointer}
+.menu-card strong{display:block;font-size:15px}.menu-card small{display:block;color:#8fa2bd;margin-top:3px}.menu-card .chev{font-size:22px;color:#6fe1bb}
 <style id="v18-extra">
 .entry-time{
   display:inline-flex;align-items:center;gap:4px;padding:2px 7px;margin-left:4px;
@@ -673,120 +681,79 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <div id="diaryList"></div>
 </div>
 </section>
-<section class="view" id="foods"><div class="card">
-<h2>Lebensmittelsuche</h2>
-<div class="field library-search-wrap">
-<label>Lebensmittel suchen</label>
-<div class="search-input-row">
-<input autocomplete="off" id="librarySearch" placeholder="z. B. Geflügel Laugendog Lidl" type="search"/>
-<button aria-label="Suche löschen" class="clear-search hidden" id="libraryClearSearch" type="button">×</button>
+<section class="view" id="foods">
+<div class="card">
+<h2>Lebensmittel erfassen</h2>
+<p class="muted">Barcode scannen. Die gefundenen Online-Daten werden <b>noch nicht gespeichert</b>, sondern zuerst zur Prüfung angezeigt. Du kannst Werte direkt an die Packung anpassen.</p>
+<div class="scan-intro">
+<button class="primary" id="libraryBarcodeScanBtn" type="button">▣ Barcode scannen</button>
+<div class="piece-hint" style="margin-top:8px">Erst prüfen → korrigieren → dann übernehmen.</div>
 </div>
-<div class="piece-hint" id="librarySearchStatus">Lokale Treffer erscheinen sofort. Open Food Facts und FoodBase werden automatisch ergänzt.</div>
-<div class="library-results" id="libraryResults"></div>
-</div>
-<div class="tool-row" style="margin-top:12px">
-<button class="secondary" id="libraryBarcodeScanBtn" type="button">▣ Barcode scannen</button>
-<button class="secondary" id="libraryPhotoBtn" type="button">📷 Nährwerte fotografieren</button>
-</div>
-<input accept="image/*" capture="environment" id="libraryPhotoInput" style="display:none" type="file"/>
-<div class="ocr-status" id="libraryPhotoStatus"></div>
-<details style="margin-top:10px">
-<summary style="cursor:pointer;color:#9dafc7;font-size:13px;padding:8px 2px">Produktlink importieren</summary>
-<div class="import-box">
-<div class="inline-actions">
-<input id="libraryImportUrl" inputmode="url" placeholder="https://fddb.info/…" type="url"/>
-<button class="mini-btn" id="libraryImportUrlBtn" type="button">Importieren</button>
+<div style="display:none">
+<input id="librarySearch" type="search"/><button id="libraryClearSearch" type="button"></button><div id="librarySearchStatus"></div><div id="libraryResults"></div>
+<button id="libraryPhotoBtn" type="button"></button><input id="libraryPhotoInput" type="file"/><div id="libraryPhotoStatus"></div>
+<input id="libraryImportUrl"/><button id="libraryImportUrlBtn" type="button"></button>
+<button id="fPhotoBtn" type="button"></button><button id="fBarcodeScanBtn" type="button"></button>
 </div>
 </div>
+<div class="card">
+<h2>Meine Lebensmittel</h2>
+<p class="muted small">Gespeicherte und geprüfte Lebensmittel – alphabetisch wie ein Glossar.</p>
+<details id="foodGlossaryMenu" open>
+<summary class="menu-card"><span><strong>Lebensmittel-Glossar</strong><small>Suche, bearbeiten oder löschen</small></span><span class="chev">›</span></summary>
+<div class="glossary-search field"><label>Im Glossar suchen</label><input id="myFoodsSearch" autocomplete="off" type="search" placeholder="z. B. Milch, Maultaschen, Laugendog …"/></div>
+<div id="customFoodsList"></div>
 </details>
-</div><div class="card">
-<h2>Favoriten</h2>
-<p class="muted small">Lebensmittel, die du selbst mit ☆ markiert hast.</p>
-<div id="favoritesList"></div>
-</div><div class="card">
-<h2>Eigenes Lebensmittel</h2>
-<p class="muted small">Du kannst die Werte eintippen oder die Nährwertdeklaration fotografieren.</p>
-<div class="form-grid">
-<div class="tool-row" style="display:none">
-<button class="secondary" id="fBarcodeScanBtn" type="button">▣ Barcode scannen</button>
-<button class="secondary" id="fPhotoBtn" type="button">📷 Nährwertdeklaration fotografieren</button>
 </div>
+<div class="card">
+<details id="newFoodMenu">
+<summary class="menu-card"><span><strong>Neues Lebensmittel anlegen</strong><small>Manuell Werte von der Packung eintragen</small></span><span class="chev">›</span></summary>
+<div style="padding-top:14px">
+<div class="form-grid">
 <input accept="image/*" capture="environment" id="fPhotoInput" style="display:none" type="file"/>
 <div class="ocr-status" id="fOcrStatus" style="display:none"></div>
 <div class="field"><label>Lebensmittel</label><input id="fName" placeholder="z.B. Proteinpudding"/></div>
-<div class="inline">
-<div class="field"><label>kcal / 100</label><input id="fKcal" inputmode="decimal" step="0.1" type="number"/></div>
-<div class="field"><label>Portion</label><input id="fPortion" inputmode="decimal" step="1" type="number" value="100"/></div>
-</div>
+<div class="inline"><div class="field"><label>kcal / 100</label><input id="fKcal" inputmode="decimal" step="0.1" type="number"/></div><div class="field"><label>Portion</label><input id="fPortion" inputmode="decimal" step="1" type="number" value="100"/></div></div>
 <div class="field"><label>Einheit</label><select id="fUnit"><option>g</option><option>ml</option></select></div>
-<div class="section-title" style="margin-top:4px">Nährwerte pro 100 g/ml <span class="muted small">(optional)</span></div>
-<div class="inline">
-<div class="field"><label>Eiweiß g</label><input id="fProtein" inputmode="decimal" step="0.1" type="number"/></div>
-<div class="field"><label>Kohlenhydrate g</label><input id="fCarbs" inputmode="decimal" step="0.1" type="number"/></div>
-</div>
-<div class="inline">
-<div class="field"><label>Fett g</label><input id="fFat" inputmode="decimal" step="0.1" type="number"/></div>
-<div class="field"><label>Ballaststoffe g</label><input id="fFiber" inputmode="decimal" step="0.1" type="number"/></div>
-</div>
-<div class="inline">
-<div class="field"><label>Zucker g</label><input id="fSugar" inputmode="decimal" step="0.1" type="number"/></div>
-<div class="field"><label>Salz g</label><input id="fSalt" inputmode="decimal" step="0.01" type="number"/></div>
-</div>
+<div class="section-title" style="margin-top:4px">Nährwerte pro 100 g/ml</div>
+<div class="inline"><div class="field"><label>Eiweiß g</label><input id="fProtein" inputmode="decimal" step="0.1" type="number"/></div><div class="field"><label>Kohlenhydrate g</label><input id="fCarbs" inputmode="decimal" step="0.1" type="number"/></div></div>
+<div class="inline"><div class="field"><label>Fett g</label><input id="fFat" inputmode="decimal" step="0.1" type="number"/></div><div class="field"><label>Ballaststoffe g</label><input id="fFiber" inputmode="decimal" step="0.1" type="number"/></div></div>
+<div class="inline"><div class="field"><label>Zucker g</label><input id="fSugar" inputmode="decimal" step="0.1" type="number"/></div><div class="field"><label>Salz g</label><input id="fSalt" inputmode="decimal" step="0.01" type="number"/></div></div>
 <div class="field"><label>Gesättigte Fettsäuren g</label><input id="fSatFat" inputmode="decimal" step="0.1" type="number"/></div>
-<div class="inline">
-<div class="field"><label>Gewicht je Stück (optional)</label><input id="fPieceWeight" inputmode="decimal" placeholder="z.B. 100" step="1" type="number"/></div>
-<div class="field"><label>Stück-Bezeichnung</label><input id="fPieceLabel" placeholder="z.B. Stück, Scheibe"/></div>
+<div class="inline"><div class="field"><label>Gewicht je Stück (optional)</label><input id="fPieceWeight" inputmode="decimal" placeholder="z.B. 100" step="1" type="number"/></div><div class="field"><label>Stück-Bezeichnung</label><input id="fPieceLabel" placeholder="z.B. Stück, Scheibe"/></div></div>
+<div class="coverage hidden" id="foodEditStatus" style="margin-bottom:10px"></div><div class="inline-actions" id="foodFormActions"><button class="primary" id="saveFoodBtn" type="button">Lebensmittel speichern</button><button class="secondary hidden" id="cancelFoodEdit" type="button">Bearbeiten abbrechen</button></div>
+</div></div>
+</details>
 </div>
-<div class="coverage hidden" id="foodEditStatus" style="margin-bottom:10px"></div><div class="inline-actions" id="foodFormActions">
-<button class="primary" id="saveFoodBtn" type="button">Lebensmittel speichern</button>
-<button class="secondary hidden" id="cancelFoodEdit" type="button">Bearbeiten abbrechen</button>
+</section></section><section class="view" id="recipes">
+<div class="card">
+<h2>Kochbuch</h2>
+<p class="muted">Deine gespeicherten Gerichte als alphabetisches Glossar. Notizen bleiben direkt am Rezept erhalten.</p>
+<details id="recipeGlossaryMenu" open>
+<summary class="menu-card"><span><strong>Gerichte-Glossar</strong><small>Suchen, öffnen und ins Tagebuch übernehmen</small></span><span class="chev">›</span></summary>
+<div class="glossary-search field"><label>Im Kochbuch suchen</label><input id="myRecipesSearch" autocomplete="off" type="search" placeholder="z. B. Bolognese, Maultaschen …"/></div>
+<div id="recipesList"></div>
+</details>
 </div>
-</div>
-</div><div class="card">
-<div class="section-title">Eigene Lebensmittel</div>
-<div id="customFoodsList"></div>
-</div></section><section class="view" id="recipes"><div class="card">
-<h2>Gerichte</h2>
-<p class="muted">Eigene Gerichte bestehen aus bereits gespeicherten Lebensmitteln. Dadurch bleibt der Rezepteditor übersichtlich.</p>
-<button class="secondary" id="goToFoodsFromRecipes" type="button">Fehlendes Lebensmittel hinzufügen</button>
-</div><div class="card">
-<h2>Gericht / Rezept erstellen</h2>
-<p class="muted small">Zutaten hinzufügen, Gesamtwerte berechnen lassen und später nur noch die gegessene Menge eintragen.</p>
+<div class="card">
+<details id="recipeBuilderMenu">
+<summary class="menu-card"><span><strong>Gericht anlegen</strong><small>Zutaten zusammenstellen und Rezept speichern</small></span><span class="chev">›</span></summary>
+<div style="padding-top:14px">
 <div class="field"><label>Name des Gerichts</label><input id="rName" placeholder="z. B. Meine Bolognese"/></div>
 <div style="height:10px"></div>
-<div class="field recipe-search-wrap">
-<label>Zutat suchen</label><input autocomplete="off" id="rSearch" placeholder="z. B. Rinderhack, Tomaten …" type="search"/>
-<div class="recipe-suggestions hidden" id="rSuggestions"></div>
+<div class="field recipe-search-wrap"><label>Zutat suchen</label><input autocomplete="off" id="rSearch" placeholder="z. B. Rinderhack, Tomaten …" type="search"/><div class="recipe-suggestions hidden" id="rSuggestions"></div></div>
+<div class="piece-hint" style="margin:8px 0 10px">Die Zutaten kommen aus deinen gespeicherten Lebensmitteln. Fehlt etwas, leg es zuerst im Lebensmittel-Glossar an.</div>
+<div style="display:none"><button id="goToFoodsFromRecipes" type="button"></button><button id="rOnlineSearchBtn" type="button"></button><button id="rWebSearchBtn" type="button"></button><button id="rBarcodeScanBtn" type="button"></button><button id="rPhotoBtn" type="button"></button><input id="rPhotoInput" type="file"/><input id="rImportUrl"/><button id="rImportUrlBtn" type="button"></button><div id="rOnlineStatus"></div><div id="rOnlineResults"></div><div id="rOcrStatus"></div></div>
+<div class="inline"><div class="field"><label>Menge</label><input id="rAmount" inputmode="decimal" min="0" placeholder="200" step="1" type="number"/></div><div class="field"><label>Einheit</label><input id="rUnit" readonly=""/></div></div>
+<div class="piece-hint" id="rSelectedInfo"></div><div style="height:8px"></div><button class="secondary" id="rAddIngredient" type="button">Zutat hinzufügen</button>
+<div class="subtle-title">Zutaten</div><div id="rIngredientList"></div><div class="recipe-summary" id="rSummary">Noch keine Zutaten.</div>
+<div class="field" style="margin-top:10px"><label>Gekochtes Endgewicht (optional)</label><input id="rCookedWeight" inputmode="decimal" placeholder="z. B. 1840" step="1" type="number"/><div class="piece-hint">Wenn sich das Gewicht beim Kochen verändert, berechnet die App kcal/100 g anhand des fertigen Gerichts.</div></div>
+<div class="inline"><div class="field"><label>1 Portion wiegt (optional)</label><input id="rPortionWeight" inputmode="decimal" placeholder="z. B. 420" step="1" type="number"/></div><div class="field"><label>Bezeichnung</label><input id="rPortionLabel" placeholder="Portion" value="Portion"/></div></div>
+<div class="field" style="margin-top:10px"><label>Notizen zum Gericht</label><textarea id="rNotes" rows="4" placeholder="Zubereitung, Gewürze, Änderungen, Lieblingshinweise …"></textarea></div>
+<div style="height:10px"></div><div class="inline-actions"><button class="primary" id="rSaveRecipe" type="button">Gericht speichern</button><button class="secondary hidden" id="rCancelEdit" type="button">Bearbeiten abbrechen</button></div>
+</div></details>
 </div>
-<div class="piece-hint" style="margin:8px 0 10px">Die Suche verwendet gespeicherte Lebensmittel. Fehlt etwas, legst du es zuerst unter „Lebensmittel“ an.</div>
-<div style="display:none">
-<button id="rOnlineSearchBtn" type="button"></button><button id="rWebSearchBtn" type="button"></button>
-<button id="rBarcodeScanBtn" type="button"></button><button id="rPhotoBtn" type="button"></button>
-<input id="rPhotoInput" type="file"/><input id="rImportUrl"/><button id="rImportUrlBtn" type="button"></button>
-<div id="rOnlineStatus"></div><div id="rOnlineResults"></div><div id="rOcrStatus"></div>
-</div>
-<div class="inline">
-<div class="field"><label>Menge</label><input id="rAmount" inputmode="decimal" min="0" placeholder="200" step="1" type="number"/></div>
-<div class="field"><label>Einheit</label><input id="rUnit" readonly=""/></div>
-</div>
-<div class="piece-hint" id="rSelectedInfo"></div>
-<div style="height:8px"></div><button class="secondary" id="rAddIngredient" type="button">Zutat hinzufügen</button>
-<div class="subtle-title">Zutaten</div><div id="rIngredientList"></div>
-<div class="recipe-summary" id="rSummary">Noch keine Zutaten.</div>
-<div class="field" style="margin-top:10px">
-<label>Gekochtes Endgewicht (optional)</label>
-<input id="rCookedWeight" inputmode="decimal" placeholder="z. B. 1840" step="1" type="number"/>
-<div class="piece-hint">Wenn sich das Gewicht beim Kochen verändert, berechnet die App kcal/100 g anhand des fertigen Gerichts.</div>
-</div><div class="inline">
-<div class="field"><label>1 Portion wiegt (optional)</label><input id="rPortionWeight" inputmode="decimal" placeholder="z. B. 420" step="1" type="number"/></div>
-<div class="field"><label>Bezeichnung</label><input id="rPortionLabel" placeholder="Portion" value="Portion"/></div>
-</div>
-<div style="height:10px"></div><button class="primary" id="rSaveRecipe" type="button">Gericht speichern</button>
-</div><div class="card">
-<div class="section-title">Gespeicherte Gerichte</div>
-<div id="recipesList"></div>
-</div></section>
-<section class="view" id="more"><div class="more-overview">
+</section><section class="view" id="more"><div class="more-overview">
 <h2>Mehr</h2>
 <p class="muted">Alles Weitere kompakt an einem Ort. Tippe einen Bereich an, um ihn zu öffnen.</p>
 </div><div class="more-accordion" data-more-key="body"><button class="more-accordion-head" type="button"><div><strong>Körper &amp; Gewicht</strong><small>Gewicht, Verlauf und Körperwerte</small></div><span class="more-chevron">›</span></button><div class="more-accordion-body hidden"><div class="card">
@@ -935,7 +902,7 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 </div>
 </div>
 <script>
-/* V28: Core-App niemals von optionalen CDN-Bibliotheken abhängig machen. */
+/* V29: Core-App niemals von optionalen CDN-Bibliotheken abhängig machen. */
 window.__ktExternalLoaders = window.__ktExternalLoaders || {};
 window.__ktLoadScript = function(src, globalName){
   if(globalName && window[globalName]) return Promise.resolve(window[globalName]);
@@ -1044,6 +1011,10 @@ const rPortionWeight=document.getElementById("rPortionWeight");
 const rPortionLabel=document.getElementById("rPortionLabel");
 const rSaveRecipe=document.getElementById("rSaveRecipe");
 const recipesList=document.getElementById("recipesList");
+const myFoodsSearch=document.getElementById("myFoodsSearch");
+const myRecipesSearch=document.getElementById("myRecipesSearch");
+const rNotes=document.getElementById("rNotes");
+const rCancelEdit=document.getElementById("rCancelEdit");
 
 const wDate=document.getElementById("wDate");
 const wValue=document.getElementById("wValue");
@@ -1460,8 +1431,9 @@ function runDataMigration(){
   if(!("lastBackupAt" in state))state.lastBackupAt=null;
   state.diary=state.diary.map(x=>({...x,time:typeof x.time==="string"?x.time:"",createdAt:typeof x.createdAt==="string"?x.createdAt:null}));
   state.customFoods=state.customFoods.map(x=>completeFoodNutrients(x)||x);
-  state.schemaVersion=9;
-  state.version=28;
+  state.recipes=state.recipes.map(r=>({...r,notes:typeof r.notes==="string"?r.notes:""}));
+  state.schemaVersion=10;
+  state.version=29;
   persistState();
 }
 
@@ -1530,7 +1502,7 @@ function renderSuggestions(){
   const hits=searchFoods(q);
   suggestions.innerHTML=hits.length?hits.map((f,i)=>`
     <button type="button" class="suggestion" data-index="${i}">
-      <div class="suggestion-name">${isFavorite(f)?"★ ":""}${esc(f.name)}</div>
+      <div class="suggestion-name">${esc(f.name)}</div>
       <div class="suggestion-meta">${fmt(f.kcal,1)} kcal/100 ${esc(f.unit)} · Portion ${fmt(f.portion||100,0)} ${esc(f.unit)}</div>
     </button>`).join(""):`<div class="list-empty">Lokal nichts gefunden. Nutze unten „Im Internet suchen“.</div>`;
   suggestions.classList.remove("hidden");
@@ -1670,14 +1642,14 @@ function openNutritionReview(food,context,sourceLabel){
   reviewContext=context;
   rvName.value=food?.name||"";
   rvKcal.value=food?.kcal??"";
-  const n=food?.nutrition||{};
-  rvProtein.value=n.protein??"";
-  rvCarbs.value=n.carbs??"";
-  rvFat.value=n.fat??"";
-  rvFiber.value=n.fiber??"";
-  rvSugar.value=n.sugar??"";
-  rvSalt.value=n.salt??"";
-  rvSatFat.value=n.satFat??"";
+  const n=completeNutrition(food?.nutrition||{});
+  rvProtein.value=n.protein;
+  rvCarbs.value=n.carbs;
+  rvFat.value=n.fat;
+  rvFiber.value=n.fiber;
+  rvSugar.value=n.sugar;
+  rvSalt.value=n.salt;
+  rvSatFat.value=n.satFat;
   rvUnit.value=food?.unit==="ml"?"ml":"g";
   reviewSource.textContent=sourceLabel||food?.source||"Erkannte Werte";
   nutritionReviewModal.classList.remove("hidden");
@@ -1764,11 +1736,10 @@ async function startBarcodeScanner(context){
         }
         if(food){
           food={...food,barcode:String(code)};
-          cacheExternalFood(food);
           await stopBarcodeScanner();
-          if(context==="diary"){selectFood(food);onlineSearchStatus.textContent="Barcode erkannt · Produkt lokal gespeichert."}
+          if(context==="diary"){cacheExternalFood(food);selectFood(food);onlineSearchStatus.textContent="Barcode erkannt · Produkt lokal gespeichert."}
           else if(context==="recipe"){recipeSelectedFood=food;rSearch.value=food.name;rUnit.value=food.unit||"g";rSelectedInfo.textContent=`${fmt(food.kcal,1)} kcal/100 ${food.unit} · Barcode`;rOnlineStatus.textContent="Barcode-Produkt übernommen."}
-          else if(context==="library"){librarySearch.value=food.name;librarySearchStatus.textContent="Barcode erkannt · Produkt gespeichert.";renderLibrarySearch()}
+          else if(context==="library"){openNutritionReview(food,{type:"library",barcode:String(code)},"Barcode · Online-Daten – bitte Packung prüfen")}
           else if(context==="food"){openNutritionReview(food,{type:"food",barcode:String(code)},"Barcode · Open Food Facts")}
         }else{
           barcodeStatus.textContent="Barcode erkannt, aber kein Datenbanktreffer. Code wurde ins Suchfeld übernommen; nutze Websuche oder Nährwertfoto.";
@@ -2056,6 +2027,7 @@ favoriteSelectedFood.addEventListener("click",()=>{
 });
 function resolveFavoriteFood(key){return allFoods().find(f=>foodIdentity(f)===key)||null}
 function renderFavorites(){
+  if(!favoritesList)return;
   const foods=(state.favorites||[]).map(resolveFavoriteFood).filter(Boolean);
   favoritesList.innerHTML=foods.length?`<div class="favorite-strip">${foods.map((f,i)=>`<button class="favorite-chip" data-fav-index="${i}">★ ${esc(f.name)}</button>`).join("")}</div><div class="muted small">Antippen öffnet das Lebensmittel direkt im Tagebuch.</div>`:'<div class="list-empty">Noch keine Favoriten. Markiere ein ausgewähltes Lebensmittel im Tagebuch mit ☆.</div>';
   [...favoritesList.querySelectorAll("[data-fav-index]")].forEach(btn=>btn.addEventListener("click",()=>{
@@ -2288,7 +2260,7 @@ function renderRecipeSuggestions(){
   const q=rSearch.value.trim();
   if(!q){rSuggestions.classList.add("hidden");rSuggestions.innerHTML="";return}
   const hits=searchFoods(q).slice(0,10);
-  rSuggestions.innerHTML=hits.length?hits.map((f,i)=>`<button type="button" class="suggestion" data-r-index="${i}"><div class="suggestion-name">${isFavorite(f)?"★ ":""}${esc(f.name)}</div><div class="suggestion-meta">${fmt(f.kcal,1)} kcal/100 ${esc(f.unit)}</div></button>`).join(""):`<div class="list-empty">Keine lokale Zutat gefunden.</div>`;
+  rSuggestions.innerHTML=hits.length?hits.map((f,i)=>`<button type="button" class="suggestion" data-r-index="${i}"><div class="suggestion-name">${esc(f.name)}</div><div class="suggestion-meta">${fmt(f.kcal,1)} kcal/100 ${esc(f.unit)}</div></button>`).join(""):`<div class="list-empty">Keine lokale Zutat gefunden.</div>`;
   rSuggestions.classList.remove("hidden");
   [...rSuggestions.querySelectorAll("[data-r-index]")].forEach(btn=>btn.addEventListener("click",()=>{
     recipeSelectedFood=hits[Number(btn.dataset.rIndex)];
@@ -2366,16 +2338,27 @@ rSaveRecipe.addEventListener("click",()=>{
   if(!name||!t.weight){alert("Bitte Namen vergeben und mindestens eine Zutat hinzufügen.");return}
   const portionWeight=Number(rPortionWeight.value||0);
   const cookedWeight=Number(rCookedWeight.value||0);
-  const recipe={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),name,ingredients:recipeBuilder.map(x=>({food:x.food,amount:x.amount})),totalWeight:t.weight,cookedWeight:cookedWeight||null,totalKcal:t.kcal,totalNutrition:t.nutrition,portionWeight:portionWeight||null,portionLabel:(rPortionLabel.value.trim()||"Portion"),createdAt:new Date().toISOString()};
-  state.recipes.push(recipe);persistState();
-  rName.value="";rCookedWeight.value="";rPortionWeight.value="";rPortionLabel.value="Portion";recipeBuilder=[];renderRecipeBuilder();renderRecipes();renderFavorites();renderAll();
+  const recipe={id:editingRecipeIndex!=null&&state.recipes[editingRecipeIndex]?.id||(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),name,ingredients:recipeBuilder.map(x=>({food:x.food,amount:x.amount})),totalWeight:t.weight,cookedWeight:cookedWeight||null,totalKcal:t.kcal,totalNutrition:t.nutrition,portionWeight:portionWeight||null,portionLabel:(rPortionLabel.value.trim()||"Portion"),notes:rNotes.value.trim(),createdAt:editingRecipeIndex!=null&&state.recipes[editingRecipeIndex]?.createdAt||new Date().toISOString()};
+  if(editingRecipeIndex!=null)state.recipes[editingRecipeIndex]=recipe;else state.recipes.push(recipe);
+  persistState();resetRecipeForm();renderRecipes();renderAll();
 });
-function renderRecipes(){
-  recipesList.innerHTML=(state.recipes||[]).length?state.recipes.map((r,i)=>{const f=recipeAsFood(r);return `<div class="entry"><div class="entry-top"><div><div class="entry-name">${esc(r.name)}</div><div class="entry-meta">${fmt(r.cookedWeight||r.totalWeight,0)} g${r.cookedWeight?` Endgewicht`:""} · ${fmt(r.totalKcal,0)} kcal gesamt · ${fmt(f.kcal,0)} kcal/100 g${r.portionWeight?` · 1 ${esc(r.portionLabel||"Portion")} = ${fmt(r.portionWeight,0)} g`:""}</div></div></div><div class="recipe-actions"><button class="mini-btn" data-r-use="${i}">Ins Tagebuch</button><button class="mini-btn" data-r-fav="${i}">${isFavorite(f)?"★":"☆"}</button><button class="mini-btn" data-r-delete="${i}">Löschen</button></div></div>`}).join(""):'<div class="list-empty">Noch keine Gerichte gespeichert.</div>';
+let editingRecipeIndex=null;
+function resetRecipeForm(){editingRecipeIndex=null;rName.value="";rCookedWeight.value="";rPortionWeight.value="";rPortionLabel.value="Portion";rNotes.value="";recipeBuilder=[];rSaveRecipe.textContent="Gericht speichern";rCancelEdit.classList.add("hidden");renderRecipeBuilder();}
+function beginRecipeEdit(i){const r=state.recipes?.[i];if(!r)return;editingRecipeIndex=i;rName.value=r.name||"";rCookedWeight.value=r.cookedWeight||"";rPortionWeight.value=r.portionWeight||"";rPortionLabel.value=r.portionLabel||"Portion";rNotes.value=r.notes||"";recipeBuilder=(r.ingredients||[]).map(x=>({food:{...x.food},amount:x.amount}));rSaveRecipe.textContent="Änderungen speichern";rCancelEdit.classList.remove("hidden");document.getElementById("recipeBuilderMenu")?.setAttribute("open","");renderRecipeBuilder();document.getElementById("recipeBuilderMenu")?.scrollIntoView({behavior:"smooth",block:"start"})}
+rCancelEdit.addEventListener("click",resetRecipeForm);
+function renderRecipeGlossary(){
+  const q=normalizeText(myRecipesSearch?.value||"");
+  const all=(state.recipes||[]).map((r,i)=>({r,i})).filter(x=>!q||normalizeText(x.r.name).includes(q)).sort((a,b)=>a.r.name.localeCompare(b.r.name,"de-DE",{sensitivity:"base"}));
+  if(!all.length){recipesList.innerHTML='<div class="list-empty">Keine passenden Gerichte gespeichert.</div>';return}
+  let last="";let html="";
+  for(const x of all){const r=x.r,letter=(r.name||"?").trim().charAt(0).toLocaleUpperCase("de-DE")||"?";if(letter!==last){last=letter;html+=`<div class="glossary-letter">${esc(letter)}</div>`}const f=recipeAsFood(r);html+=`<div class="glossary-item"><div class="glossary-main"><div class="glossary-name">${esc(r.name)}</div><div class="glossary-meta">${fmt(r.cookedWeight||r.totalWeight,0)} g${r.cookedWeight?" Endgewicht":""} · ${fmt(r.totalKcal,0)} kcal gesamt · ${fmt(f.kcal,0)} kcal/100 g${r.portionWeight?` · 1 ${esc(r.portionLabel||"Portion")} = ${fmt(r.portionWeight,0)} g`:""}</div>${r.notes?`<div class="glossary-note">📝 ${esc(r.notes)}</div>`:""}</div><div class="glossary-actions"><button class="mini-btn" data-r-use="${x.i}">Ins Tagebuch</button><button class="mini-btn" data-r-edit="${x.i}">Bearbeiten</button><button class="mini-btn" data-r-delete="${x.i}">Löschen</button></div></div>`}
+  recipesList.innerHTML=html;
   [...recipesList.querySelectorAll("[data-r-use]")].forEach(b=>b.addEventListener("click",()=>{const f=recipeAsFood(state.recipes[Number(b.dataset.rUse)]);document.querySelector('.nav-btn[data-view="diary"]')?.click();selectFood(f)}));
-  [...recipesList.querySelectorAll("[data-r-fav]")].forEach(b=>b.addEventListener("click",()=>{const f=recipeAsFood(state.recipes[Number(b.dataset.rFav)]),key=foodIdentity(f);if(isFavorite(f))state.favorites=state.favorites.filter(x=>x!==key);else state.favorites.push(key);persistState();renderRecipes();renderFavorites()}));
-  [...recipesList.querySelectorAll("[data-r-delete]")].forEach(b=>b.addEventListener("click",()=>{const i=Number(b.dataset.rDelete),r=state.recipes[i];if(!confirm(`Gericht „${r.name}“ löschen?`))return;state.favorites=state.favorites.filter(x=>x!==`recipe:${r.id}`);state.recipes.splice(i,1);saveLocal()}));
+  [...recipesList.querySelectorAll("[data-r-edit]")].forEach(b=>b.addEventListener("click",()=>beginRecipeEdit(Number(b.dataset.rEdit))));
+  [...recipesList.querySelectorAll("[data-r-delete]")].forEach(b=>b.addEventListener("click",()=>{const i=Number(b.dataset.rDelete),r=state.recipes[i];if(!confirm(`Gericht „${r.name}“ löschen?`))return;state.recipes.splice(i,1);if(editingRecipeIndex===i)resetRecipeForm();saveLocal()}));
 }
+function renderRecipes(){renderRecipeGlossary()}
+myRecipesSearch?.addEventListener("input",renderRecipeGlossary);
 renderRecipeBuilder();
 
 
@@ -2454,13 +2437,17 @@ function renderSavedFoodList(){const el=document.getElementById("savedFoodList")
 window.editSavedFood=i=>{const x=savedEditableFoods()[i];if(!x)return;if(x.source==="Eigene"){fillFoodForm(completeFoodNutrients({...x.f}),x.index);return}const c=completeFoodNutrients({...x.f});c.category="Eigene Lebensmittel";state.customFoods.push(c);fillFoodForm(c,state.customFoods.length-1);saveLocal();renderSavedFoodList()};
 window.deleteSavedFood=i=>{const x=savedEditableFoods()[i];if(!x||!confirm(`„${x.f.name}“ wirklich löschen?`))return;if(x.source==="Eigene")state.customFoods.splice(x.index,1);else{const c=state.externalFoods||state.externalFoodCache||state.cachedFoods;if(Array.isArray(c))c.splice(x.index,1)}saveLocal();renderCustomFoods();renderSavedFoodList()};
 function renderCustomFoods(){
-  customFoodsList.innerHTML=state.customFoods.length?state.customFoods.map((f,i)=>{
-    const n=nutritionPer100(f);
-    const ntext=n?` · EW ${fmt(n.protein||0,1)} · KH ${fmt(n.carbs||0,1)} · F ${fmt(n.fat||0,1)}`:"";
-    return `<div class="entry"><div class="entry-top"><div><div class="entry-name">${esc(f.name)}</div><div class="entry-meta">${fmt(f.kcal,1)} kcal/100 · Portion ${fmt(f.portion,0)} ${esc(f.unit)}${ntext}${f.pieceWeight?` · 1 ${esc(f.pieceLabel||'Stück')} ≈ ${fmt(f.pieceWeight,0)} ${esc(f.unit)}`:''}</div></div></div>
-    <div class="entry-actions"><button class="mini-btn" onclick="editFood(${i})">Bearbeiten</button><button class="mini-btn" onclick="delFood(${i})">Löschen</button></div></div>`;
-  }).join(""):'<div class="list-empty">Noch keine eigenen Lebensmittel.</div>';
+  const el=customFoodsList;if(!el)return;
+  const q=normalizeText(myFoodsSearch?.value||"");
+  const all=savedEditableFoods().filter(x=>!q||normalizeText(x.f.name).includes(q)).sort((a,b)=>a.f.name.localeCompare(b.f.name,"de-DE",{sensitivity:"base"}));
+  if(!all.length){el.innerHTML='<div class="list-empty">Keine passenden Lebensmittel gespeichert.</div>';return}
+  let last="",html="";
+  all.forEach((x,i)=>{const letter=(x.f.name||"?").trim().charAt(0).toLocaleUpperCase("de-DE")||"?";if(letter!==last){last=letter;html+=`<div class="glossary-letter">${esc(letter)}</div>`}const n=completeNutrition(nutritionPer100(x.f)||{});const source=x.source==="Eigene"?"Eigenes Lebensmittel":(x.f.barcode?"Barcode":"Import");html+=`<div class="glossary-item"><div class="glossary-main"><div class="glossary-name">${esc(x.f.name)}</div><div class="glossary-meta"><span class="food-source-chip">${esc(source)}</span> · ${fmt(Number(x.f.kcal||0),0)} kcal · EW ${fmt(n.protein,1)} g · KH ${fmt(n.carbs,1)} g · F ${fmt(n.fat,1)} g</div></div><div class="glossary-actions"><button class="mini-btn" data-food-edit="${i}">Bearbeiten</button><button class="mini-btn" data-food-delete="${i}">Löschen</button></div></div>`});
+  el.innerHTML=html;
+  [...el.querySelectorAll("[data-food-edit]")].forEach(b=>b.addEventListener("click",()=>{const x=all[Number(b.dataset.foodEdit)];if(x.source==="Eigene")fillFoodForm(completeFoodNutrients({...x.f}),x.index);else{const c=completeFoodNutrients({...x.f});c.category="Eigene Lebensmittel";state.customFoods.push(c);fillFoodForm(c,state.customFoods.length-1);persistState();renderCustomFoods()}}));
+  [...el.querySelectorAll("[data-food-delete]")].forEach(b=>b.addEventListener("click",()=>{const x=all[Number(b.dataset.foodDelete)];if(!x||!confirm(`„${x.f.name}“ wirklich löschen?`))return;if(x.source==="Eigene")state.customFoods.splice(x.index,1);else{const c=state.externalFoods||state.externalFoodCache||state.cachedFoods;if(Array.isArray(c))c.splice(x.index,1)}saveLocal() }));
 }
+myFoodsSearch?.addEventListener("input",renderCustomFoods);
 window.editFood=i=>{const f=state.customFoods[i];if(f)fillFoodForm(f,i)};
 window.delFood=i=>{
   const f=state.customFoods[i];if(!f)return;
@@ -3224,7 +3211,7 @@ resetData.addEventListener("click",()=>{
   if(confirm("Wirklich alle lokalen Daten löschen?")){state=clone(DEFAULT_STATE);saveLocal()}
 });
 
-function renderAll(){renderDiary();renderCustomFoods();renderFavorites();renderRecipes();renderWeight();renderSettings();renderDietPrefs();renderHealthForm();renderDashboard();renderBackupStatus()}
+function renderAll(){renderDiary();renderCustomFoods();renderRecipes();renderWeight();renderSettings();renderDietPrefs();renderHealthForm();renderDashboard();renderBackupStatus()}
 dDate.value=todayISO();wDate.value=todayISO();dashWeightDate.value=todayISO();diaryBrowseDateValue=todayISO();diaryBrowseDate.value=todayISO();
 setMealSelection(suggestedMealForTime(),false);
 function bounceHealthImportToChrome(){
