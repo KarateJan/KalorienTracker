@@ -935,7 +935,7 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 </div>
 </div>
 <script>
-/* V27: Core-App niemals von optionalen CDN-Bibliotheken abhängig machen. */
+/* V28: Core-App niemals von optionalen CDN-Bibliotheken abhängig machen. */
 window.__ktExternalLoaders = window.__ktExternalLoaders || {};
 window.__ktLoadScript = function(src, globalName){
   if(globalName && window[globalName]) return Promise.resolve(window[globalName]);
@@ -1437,6 +1437,9 @@ function mergedDefaultFoods(savedFoods){
   }
   return [...map.values()];
 }
+const NUTRIENT_KEYS=["protein","carbs","fat","fiber","sugar","salt","satFat"];
+function completeNutrition(n){const o={};for(const k of NUTRIENT_KEYS){const v=Number(n?.[k]);o[k]=Number.isFinite(v)&&v>=0?v:0}return o}
+function completeFoodNutrients(f){if(!f)return f;f.nutrition=completeNutrition(nutritionPer100(f)||{});return f}
 function runDataMigration(){
   // V26: niemals Arrays oder Nutzerdaten mit DEFAULT_STATE überschreiben.
   if(!state || typeof state!=="object")state=clone(DEFAULT_STATE);
@@ -1457,8 +1460,8 @@ function runDataMigration(){
   if(!("lastBackupAt" in state))state.lastBackupAt=null;
   state.diary=state.diary.map(x=>({...x,time:typeof x.time==="string"?x.time:"",createdAt:typeof x.createdAt==="string"?x.createdAt:null}));
   state.customFoods=state.customFoods.map(x=>completeFoodNutrients(x)||x);
-  state.schemaVersion=8;
-  state.version=26;
+  state.schemaVersion=9;
+  state.version=28;
   persistState();
 }
 
@@ -2391,7 +2394,6 @@ fPhotoInput.addEventListener("change",async e=>{
 
 let editingFoodIndex=null;
 
-const NUTRIENT_KEYS=["protein","carbs","fat","fiber","sugar","salt","satFat"];function completeNutrition(n){const o={};for(const k of NUTRIENT_KEYS){const v=Number(n?.[k]);o[k]=Number.isFinite(v)&&v>=0?v:0}return o}function completeFoodNutrients(f){if(!f)return f;f.nutrition=completeNutrition(nutritionPer100(f)||{});return f}
 function readFoodForm(){
   const name=fName.value.trim(),kcal=Number(fKcal.value),portion=Number(fPortion.value||100),unit=fUnit.value;
   const pieceWeight=Number(fPieceWeight.value||0),pieceLabel=fPieceLabel.value.trim();
@@ -3246,7 +3248,7 @@ try{
   if(box){box.style.display="block";box.textContent="App-Fehler beim Start: "+(err?.message||String(err));}
 }
 
-/* V27: alte Service Worker nur noch auslaufen lassen; die App selbst funktioniert auch ohne PWA-Cache. */
+/* V28: alte Service Worker nur noch auslaufen lassen; die App selbst funktioniert auch ohne PWA-Cache. */
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).catch(()=>{}));
 }
