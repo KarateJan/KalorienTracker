@@ -355,11 +355,11 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 .limit-row small{grid-column:1/-1;color:#8396b0}
 @media(max-width:380px){.nutrition-goal-grid{grid-template-columns:1fr}}
 </style>
-<style id="v29-extra">
+<style id="v30-extra">
 .glossary-search{margin:10px 0 14px}
 .glossary-letter{font-size:12px;font-weight:900;color:#6fe1bb;letter-spacing:.08em;margin:16px 2px 7px;text-transform:uppercase}
-.glossary-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid rgba(143,162,189,.10)}
-.glossary-main{min-width:0}.glossary-name{font-weight:800;overflow-wrap:anywhere}.glossary-meta{font-size:11px;color:#8fa2bd;margin-top:4px;line-height:1.4}.glossary-note{font-size:12px;color:#a9bdd8;margin-top:5px;white-space:pre-wrap;overflow-wrap:anywhere}.glossary-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0}
+.glossary-item{display:block;padding:13px 0;border-top:1px solid rgba(143,162,189,.10)}
+.glossary-main{min-width:0}.glossary-name{font-weight:800;overflow-wrap:anywhere}.glossary-meta{font-size:11px;color:#8fa2bd;margin-top:4px;line-height:1.4}.glossary-note{font-size:12px;color:#a9bdd8;margin-top:5px;white-space:pre-wrap;overflow-wrap:anywhere}.glossary-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.glossary-actions .mini-btn{width:100%;min-height:38px;white-space:normal;line-height:1.15}.product-url-import{margin-top:10px}.product-url-import .menu-card{padding:12px 14px}.recipe-note-empty{opacity:.65}
 .scan-intro{padding:12px 14px;border-radius:16px;background:rgba(32,211,154,.055);border:1px solid rgba(32,211,154,.16);margin-top:10px}
 .menu-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid rgba(143,162,189,.14);border-radius:18px;background:rgba(7,17,31,.34);cursor:pointer}
 .menu-card strong{display:block;font-size:15px}.menu-card small{display:block;color:#8fa2bd;margin-top:3px}.menu-card .chev{font-size:22px;color:#6fe1bb}
@@ -689,10 +689,17 @@ input,select,textarea{background:#091525;border-color:#293b56;border-radius:16px
 <button class="primary" id="libraryBarcodeScanBtn" type="button">▣ Barcode scannen</button>
 <div class="piece-hint" style="margin-top:8px">Erst prüfen → korrigieren → dann übernehmen.</div>
 </div>
+<details class="product-url-import">
+<summary class="menu-card"><span><strong>Produkt per Link importieren</strong><small>z. B. FDDB-Produktseite öffnen und prüfen</small></span><span class="chev">›</span></summary>
+<div style="padding-top:12px">
+<div class="field"><label>FDDB- oder Produktlink</label><input id="libraryImportUrl" inputmode="url" type="url" placeholder="https://fddb.info/..." autocomplete="url"/></div>
+<button class="secondary" id="libraryImportUrlBtn" type="button">Produktdaten laden</button>
+<div class="piece-hint" id="libraryPhotoStatus" style="margin-top:8px"></div>
+</div>
+</details>
 <div style="display:none">
 <input id="librarySearch" type="search"/><button id="libraryClearSearch" type="button"></button><div id="librarySearchStatus"></div><div id="libraryResults"></div>
-<button id="libraryPhotoBtn" type="button"></button><input id="libraryPhotoInput" type="file"/><div id="libraryPhotoStatus"></div>
-<input id="libraryImportUrl"/><button id="libraryImportUrlBtn" type="button"></button>
+<button id="libraryPhotoBtn" type="button"></button><input id="libraryPhotoInput" type="file"/>
 <button id="fPhotoBtn" type="button"></button><button id="fBarcodeScanBtn" type="button"></button>
 </div>
 </div>
@@ -1433,7 +1440,7 @@ function runDataMigration(){
   state.customFoods=state.customFoods.map(x=>completeFoodNutrients(x)||x);
   state.recipes=state.recipes.map(r=>({...r,notes:typeof r.notes==="string"?r.notes:""}));
   state.schemaVersion=10;
-  state.version=29;
+  state.version=30;
   persistState();
 }
 
@@ -2351,9 +2358,10 @@ function renderRecipeGlossary(){
   const all=(state.recipes||[]).map((r,i)=>({r,i})).filter(x=>!q||normalizeText(x.r.name).includes(q)).sort((a,b)=>a.r.name.localeCompare(b.r.name,"de-DE",{sensitivity:"base"}));
   if(!all.length){recipesList.innerHTML='<div class="list-empty">Keine passenden Gerichte gespeichert.</div>';return}
   let last="";let html="";
-  for(const x of all){const r=x.r,letter=(r.name||"?").trim().charAt(0).toLocaleUpperCase("de-DE")||"?";if(letter!==last){last=letter;html+=`<div class="glossary-letter">${esc(letter)}</div>`}const f=recipeAsFood(r);html+=`<div class="glossary-item"><div class="glossary-main"><div class="glossary-name">${esc(r.name)}</div><div class="glossary-meta">${fmt(r.cookedWeight||r.totalWeight,0)} g${r.cookedWeight?" Endgewicht":""} · ${fmt(r.totalKcal,0)} kcal gesamt · ${fmt(f.kcal,0)} kcal/100 g${r.portionWeight?` · 1 ${esc(r.portionLabel||"Portion")} = ${fmt(r.portionWeight,0)} g`:""}</div>${r.notes?`<div class="glossary-note">📝 ${esc(r.notes)}</div>`:""}</div><div class="glossary-actions"><button class="mini-btn" data-r-use="${x.i}">Ins Tagebuch</button><button class="mini-btn" data-r-edit="${x.i}">Bearbeiten</button><button class="mini-btn" data-r-delete="${x.i}">Löschen</button></div></div>`}
+  for(const x of all){const r=x.r,letter=(r.name||"?").trim().charAt(0).toLocaleUpperCase("de-DE")||"?";if(letter!==last){last=letter;html+=`<div class="glossary-letter">${esc(letter)}</div>`}const f=recipeAsFood(r);html+=`<div class="glossary-item"><div class="glossary-main"><div class="glossary-name">${esc(r.name)}</div><div class="glossary-meta">${fmt(r.cookedWeight||r.totalWeight,0)} g${r.cookedWeight?" Endgewicht":""} · ${fmt(r.totalKcal,0)} kcal gesamt · ${fmt(f.kcal,0)} kcal/100 g${r.portionWeight?` · 1 ${esc(r.portionLabel||"Portion")} = ${fmt(r.portionWeight,0)} g`:""}</div>${r.notes?`<div class="glossary-note">📝 ${esc(r.notes)}</div>`:""}</div><div class="glossary-actions"><button class="mini-btn" data-r-use="${x.i}">Ins Tagebuch</button><button class="mini-btn" data-r-note="${x.i}">Notiz</button><button class="mini-btn" data-r-edit="${x.i}">Bearbeiten</button><button class="mini-btn" data-r-delete="${x.i}">Löschen</button></div></div>`}
   recipesList.innerHTML=html;
   [...recipesList.querySelectorAll("[data-r-use]")].forEach(b=>b.addEventListener("click",()=>{const f=recipeAsFood(state.recipes[Number(b.dataset.rUse)]);document.querySelector('.nav-btn[data-view="diary"]')?.click();selectFood(f)}));
+  [...recipesList.querySelectorAll("[data-r-note]")].forEach(b=>b.addEventListener("click",()=>{const r=state.recipes[Number(b.dataset.rNote)];if(!r)return;alert(r.notes?.trim()?`Notiz zu „${r.name}":\n\n${r.notes}`:`Für „${r.name}" ist noch keine Notiz hinterlegt.`)}));
   [...recipesList.querySelectorAll("[data-r-edit]")].forEach(b=>b.addEventListener("click",()=>beginRecipeEdit(Number(b.dataset.rEdit))));
   [...recipesList.querySelectorAll("[data-r-delete]")].forEach(b=>b.addEventListener("click",()=>{const i=Number(b.dataset.rDelete),r=state.recipes[i];if(!confirm(`Gericht „${r.name}“ löschen?`))return;state.recipes.splice(i,1);if(editingRecipeIndex===i)resetRecipeForm();saveLocal()}));
 }
